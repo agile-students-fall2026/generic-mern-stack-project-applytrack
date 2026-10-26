@@ -42,7 +42,7 @@ These students are a good initial user group because many of them apply to a lar
 - [Bertin](https://github.com/Bertin-Ir)
 - [Kumneger](https://github.com/ken11235)
 - [Ryan](https://github.com/Exlanious)
-- [Esitfanos](https://github.com/Estifanos-Wassie)
+- [Estifanos](https://github.com/Estifanos-Wassie)
 
 ---
 ## History
@@ -72,4 +72,8 @@ To be shared as we progress to that stage.
 ### Running the app locally
 
 - To be completed
+
+## Relevant Links/Materials
+- [Figma prototype](https://www.figma.com/proto/9EX5tzYDrlj3Gzjzbx0MYe/applytrack-wireframe?node-id=0-1&t=Lk0LxVGaovkle1CD-1)
+- [App map](ux-design/ApplyTrack_app_map.png)
 
