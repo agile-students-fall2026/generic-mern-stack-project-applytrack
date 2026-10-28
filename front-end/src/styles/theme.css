@@ -1,0 +1,108 @@
+/*
+ * ApplyTrack design tokens.
+ *
+ * Every color, font size, spacing value and radius used in the app is defined here.
+ * Always use these variables in your CSS (e.g. `color: var(--color-text)`) instead of
+ * writing raw values, so that light and dark themes work automatically.
+ *
+ * The active theme is set by the `data-theme` attribute on <html> ("light" or "dark").
+ * See src/context/ThemeProvider.jsx.
+ */
+
+:root {
+  /* ---------- Typography ---------- */
+  --font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --font-size-xs: 0.75rem; /* 12px - captions, badges, hints */
+  --font-size-sm: 0.875rem; /* 14px - secondary text, labels */
+  --font-size-md: 1rem; /* 16px - body text, inputs, buttons */
+  --font-size-lg: 1.125rem; /* 18px - card titles */
+  --font-size-xl: 1.375rem; /* 22px - page titles with a back button */
+  --font-size-2xl: 1.75rem; /* 28px - large page titles (Home, Applications...) */
+  --font-size-3xl: 2rem; /* 32px - big numbers on stat cards */
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+
+  /* ---------- Spacing (4px scale) ---------- */
+  --space-1: 0.25rem; /* 4px */
+  --space-2: 0.5rem; /* 8px */
+  --space-3: 0.75rem; /* 12px */
+  --space-4: 1rem; /* 16px */
+  --space-5: 1.25rem; /* 20px */
+  --space-6: 1.5rem; /* 24px */
+  --space-8: 2rem; /* 32px */
+  --space-10: 2.5rem; /* 40px */
+
+  /* ---------- Shape ---------- */
+  --radius-sm: 6px; /* badges, chips */
+  --radius-md: 10px; /* inputs, buttons */
+  --radius-lg: 14px; /* cards, dialogs */
+  --radius-full: 999px; /* avatars, round buttons */
+
+  --border-width: 1px;
+
+  /* ---------- Layout ---------- */
+  --app-max-width: 480px; /* the app is mobile-first; on wider screens it stays phone-width */
+  --top-bar-height: 56px;
+  --bottom-nav-height: 64px;
+  --tap-target: 44px; /* minimum height for anything tappable */
+
+  /* ---------- Motion ---------- */
+  --transition-fast: 120ms ease;
+  --transition-normal: 200ms ease;
+
+  /* ---------- Light theme colors (default) ---------- */
+  --color-bg: #f5f5f3; /* page background */
+  --color-surface: #ffffff; /* cards, inputs, dialogs */
+  --color-surface-muted: #ececea; /* image placeholders, subtle badges, pressed states */
+  --color-border: #e2e2df;
+  --color-border-strong: #c9c9c5;
+
+  --color-text: #141414; /* main text */
+  --color-text-muted: #6b6b68; /* secondary text */
+  --color-text-subtle: #9a9a96; /* placeholders, hints */
+
+  --color-primary: #141414; /* primary buttons, selected chips, strong badges */
+  --color-on-primary: #ffffff; /* text on top of --color-primary */
+  --color-primary-hover: #2e2e2e;
+
+  --color-focus: #141414; /* keyboard focus ring */
+  --color-overlay: rgba(0, 0, 0, 0.45); /* backdrop behind dialogs */
+  --shadow-dialog: 0 12px 32px rgba(0, 0, 0, 0.18);
+
+  /* The only non-gray color in the app: used sparingly for errors and destructive warnings */
+  --color-danger: #b42318;
+
+  color-scheme: light;
+}
+
+/* ---------- Dark theme colors ---------- */
+:root[data-theme='dark'] {
+  --color-bg: #0e0e0e;
+  --color-surface: #1a1a1a;
+  --color-surface-muted: #262626;
+  --color-border: #2c2c2c;
+  --color-border-strong: #444444;
+
+  --color-text: #f3f3f1;
+  --color-text-muted: #a3a3a0;
+  --color-text-subtle: #6f6f6c;
+
+  --color-primary: #f3f3f1;
+  --color-on-primary: #0e0e0e;
+  --color-primary-hover: #d9d9d6;
+
+  --color-focus: #f3f3f1;
+  --color-overlay: rgba(0, 0, 0, 0.65);
+  --shadow-dialog: 0 12px 32px rgba(0, 0, 0, 0.6);
+
+  --color-danger: #f97066;
+
+  color-scheme: dark;
+}
