@@ -12,6 +12,7 @@ import {
   Page,
   SectionHeader,
   StatCard,
+  ThemeToggle,
 } from '../../components'
 import { useApi } from '../../hooks/useApi'
 import { todayString } from '../../utils/format'
@@ -69,9 +70,12 @@ export default function Home() {
       title={`Hi, ${firstName}`}
       subtitle="Here's your recruiting at a glance"
       action={
-        <Link to="/profile" className="home__avatar-link" aria-label="Open profile">
-          <Avatar src={user.avatarUrl} alt={user.fullName} shape="circle" size={44} />
-        </Link>
+        <>
+          <ThemeToggle />
+          <Link to="/profile" className="home__avatar-link" aria-label="Open profile">
+            <Avatar src={user.avatarUrl} alt={user.fullName} shape="circle" size={44} />
+          </Link>
+        </>
       }
     >
       <div className="stat-grid">
