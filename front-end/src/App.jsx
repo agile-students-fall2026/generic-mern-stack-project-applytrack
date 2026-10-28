@@ -1,122 +1,93 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom'
+import { BottomNav } from './components'
+import { AuthProvider } from './context/AuthProvider'
+import { ThemeProvider } from './context/ThemeProvider'
 
-function App() {
-  const [count, setCount] = useState(0)
+import AddApplication from './pages/applications/AddApplication'
+import ApplicationDetails from './pages/applications/ApplicationDetails'
+import Archive from './pages/applications/Archive'
+import Dashboard from './pages/applications/Dashboard'
+import EditApplication from './pages/applications/EditApplication'
+import InterviewRound from './pages/applications/InterviewRound'
+import OfferDetails from './pages/applications/OfferDetails'
+import ForgotPassword from './pages/auth/ForgotPassword'
+import LogIn from './pages/auth/LogIn'
+import ResetPassword from './pages/auth/ResetPassword'
+import SignUp from './pages/auth/SignUp'
+import Welcome from './pages/auth/Welcome'
+import ComponentGallery from './pages/dev/ComponentGallery'
+import AddEvent from './pages/events/AddEvent'
+import EditEvent from './pages/events/EditEvent'
+import Upcoming from './pages/events/Upcoming'
+import Home from './pages/home/Home'
+import NotFound from './pages/NotFound'
+import EditAccount from './pages/profile/EditAccount'
+import ExportData from './pages/profile/ExportData'
+import NotificationSettings from './pages/profile/NotificationSettings'
+import Profile from './pages/profile/Profile'
+import Statistics from './pages/stats/Statistics'
 
+/** The five main screens share the bottom navigation bar. */
+function TabLayout() {
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    <div className="tab-layout">
+      <Outlet />
+      <BottomNav />
+    </div>
   )
 }
 
-export default App
+/**
+ * Every screen in the app and its URL.
+ * To link to a screen, use one of these paths, e.g. <Button to="/applications/new">.
+ */
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Signed-out screens */}
+            <Route path="/" element={<Welcome />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/login" element={<LogIn />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+
+            {/* Main screens with the bottom navigation bar */}
+            <Route element={<TabLayout />}>
+              <Route path="/home" element={<Home />} />
+              <Route path="/applications" element={<Dashboard />} />
+              <Route path="/upcoming" element={<Upcoming />} />
+              <Route path="/stats" element={<Statistics />} />
+              <Route path="/profile" element={<Profile />} />
+            </Route>
+
+            {/* Applications */}
+            <Route path="/applications/new" element={<AddApplication />} />
+            <Route path="/applications/:id" element={<ApplicationDetails />} />
+            <Route path="/applications/:id/edit" element={<EditApplication />} />
+            <Route path="/applications/:id/offer" element={<OfferDetails />} />
+            <Route path="/applications/:id/rounds/new" element={<InterviewRound />} />
+            <Route path="/applications/:id/rounds/:roundId" element={<InterviewRound />} />
+            <Route path="/archive" element={<Archive />} />
+
+            {/* Events */}
+            <Route path="/events/new" element={<AddEvent />} />
+            <Route path="/events/:id/edit" element={<EditEvent />} />
+
+            {/* Profile */}
+            <Route path="/profile/edit" element={<EditAccount />} />
+            <Route path="/profile/notifications" element={<NotificationSettings />} />
+            <Route path="/profile/export" element={<ExportData />} />
+
+            {/* Developer tools: a live gallery of every shared component */}
+            <Route path="/dev/components" element={<ComponentGallery />} />
+
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
+  )
+}
