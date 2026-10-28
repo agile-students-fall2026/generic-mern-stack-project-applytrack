@@ -1,0 +1,10 @@
+.home__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.home__avatar-link {
+  display: inline-flex;
+  border-radius: var(--radius-full);
+}

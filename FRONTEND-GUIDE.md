@@ -23,6 +23,8 @@ Before opening a pull request, run `npm run lint` and fix anything it reports.
 
 Every screen already has a file with a "Not built yet" placeholder that names its owner. **Delete the `<PagePlaceholder>` and build your screen in its place.** The route and the back button already work.
 
+**Finished examples to copy from:** `home/Home.jsx` (loading several things at once, lists, empty states) and `profile/NotificationSettings.jsx` (a form that loads, saves and shows a success pop-up).
+
 | Owner | Screen | File (in `front-end/src/pages/`) | URL |
 | --- | --- | --- | --- |
 | Kumneger | Welcome | `auth/Welcome.jsx` | `/` |
@@ -42,8 +44,8 @@ Every screen already has a file with a "Not built yet" placeholder that names it
 | Ryan | Add / Edit Event | `events/AddEvent.jsx`, `events/EditEvent.jsx` | `/events/new`, `/events/:id/edit` |
 | Ryan | Interview Round | `applications/InterviewRound.jsx` | `/applications/:id/rounds/new`, `/applications/:id/rounds/:roundId` |
 | Ryan | Statistics | `stats/Statistics.jsx` | `/stats` |
-| **Unassigned** | Home | `home/Home.jsx` | `/home` |
-| **Unassigned** | Notification Settings | `profile/NotificationSettings.jsx` | `/profile/notifications` |
+| Kumneger (done) | Home | `home/Home.jsx` | `/home` |
+| Kumneger (done) | Notification Settings | `profile/NotificationSettings.jsx` | `/profile/notifications` |
 
 Pop-ups (delete confirmations, "saved" messages, update status, sort) are **not** separate pages. Build them inside the page that opens them, using the dialog components below. The wireframe for each one is in `ux-design/prototype/`.
 
