@@ -1,0 +1,12 @@
+{
+  "id": "user-1",
+  "fullName": "Alex Morgan",
+  "email": "alex.morgan@university.example",
+  "avatarUrl": "https://picsum.photos/seed/applytrack-user/200/200",
+  "notificationSettings": {
+    "deadlineReminders": true,
+    "interviewReminders": true,
+    "followUpReminders": true,
+    "weeklySummary": false
+  }
+}
