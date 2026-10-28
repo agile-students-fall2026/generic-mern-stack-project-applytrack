@@ -58,20 +58,39 @@ We welcome contributions from team members and other students. Please read [CONT
 
 ## Building and Testing
 
-To be shared as we progress to that stage.
+The front-end is a [React](https://react.dev) app built with [Vite](https://vite.dev). In Sprint 1 it runs on mock data (`front-end/public/mock-data/`), so no back-end or database is needed yet.
 
 ### Prerequisites
 
-- To be completed
+- [Node.js](https://nodejs.org) **20.19 or newer** (check with `node -v`). If you use [nvm](https://github.com/nvm-sh/nvm), run `nvm use` inside `front-end/`.
+- [Git](https://git-scm.com)
 
 ### Setup
 
-- To be updated
-
+```bash
+git clone https://github.com/agile-students-fall2026/generic-mern-stack-project-applyTrack.git
+cd generic-mern-stack-project-applyTrack/front-end
+npm install
+```
 
 ### Running the app locally
 
-- To be completed
+```bash
+cd front-end
+npm run dev
+```
+
+Open the address shown in the terminal (usually http://localhost:5173). The app is designed for phones; on a computer, use your browser's mobile view for the best experience.
+
+Other commands (run inside `front-end/`):
+
+| Command | What it does |
+| --- | --- |
+| `npm run lint` | Checks the code for problems |
+| `npm run build` | Builds the production version into `front-end/dist/` |
+| `npm run preview` | Serves the production build locally |
+
+Team members: see the [Front-End Guide](./FRONTEND-GUIDE.md) for how the code is organized and how to build screens.
 
 ## Relevant Links/Materials
 - [Figma prototype](https://www.figma.com/proto/9EX5tzYDrlj3Gzjzbx0MYe/applytrack-wireframe?node-id=0-1&t=Lk0LxVGaovkle1CD-1)

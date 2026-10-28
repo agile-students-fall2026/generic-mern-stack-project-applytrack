@@ -16,14 +16,14 @@ By contributing to this repository, you agree to follow the norms and processes 
 - **Ownership:** When we take on a task, we see it through, or we say early that we can't.
 - **Transparency:** Progress and blockers are visible to everyone on the task board and in standups.
 - **Helpfulness:** If a teammate is stuck, we help. Asking for help is encouraged, not a weakness.
-- **Quality over speed:** We would rather merge a smaller feature that works than a large one that breaks `main`.
+- **Quality over speed:** We would rather merge a smaller feature that works than a large one that breaks `master`.
 
 **Asking for help:** If you are blocked on a task, ask for help.
 
 ### Coding Standards
 
 - Keep code readable: descriptive names for variables and functions, small focused functions, and comments where the purpose isn't obvious.
-- **Don't break `main`.** Run the app and the tests locally before opening a pull request.
+- **Don't break `master`.** Run the app and the tests locally before opening a pull request.
 - Commit small, logical changes often. Avoid huge commits that mix unrelated work.
 - Write clear single line commit messages in the present tense that say what the commit does, e.g. `Add validation to application form`.
 - Never commit secrets (API keys, passwords, database URLs). Use a `.env` file, which is listed in `.gitignore`.
@@ -38,10 +38,10 @@ We follow the  feature branch workflow. All changes are made in branches, peer-r
 
 ### Step by step
 
-1. **Get the latest `main`:**
+1. **Get the latest `master`:**
    ```bash
-   git checkout main
-   git pull origin main
+   git checkout master
+   git pull origin master
    ```
 
 2. **Create a feature branch** named after the task or issue:
@@ -61,12 +61,12 @@ We follow the  feature branch workflow. All changes are made in branches, peer-r
    git commit -m "Add company and position fields to application form"
    ```
 
-4. **Bring in the latest `main` before pushing**, to resolve any conflicts locally:
+4. **Bring in the latest `master` before pushing**, to resolve any conflicts locally:
    ```bash
-   git checkout main
-   git pull origin main
+   git checkout master
+   git pull origin master
    git checkout feature/<branch-name>
-   git merge main
+   git merge master
    ```
    Resolve any conflicts, run the app to make sure it still works, then commit.
 
@@ -75,7 +75,7 @@ We follow the  feature branch workflow. All changes are made in branches, peer-r
    git push -u origin feature/<branch-name>
    ```
 
-6. **Open a pull request** on GitHub from your branch into `main`.
+6. **Open a pull request** on GitHub from your branch into `master`.
 
 7. **Address review feedback** by committing to the same branch and pushing again. The pull request updates automatically.
 
@@ -83,16 +83,16 @@ We follow the  feature branch workflow. All changes are made in branches, peer-r
 
 9. **Clean up locally:**
    ```bash
-   git checkout main
-   git pull origin main
+   git checkout master
+   git pull origin master
    git branch -d feature/<branch-name>
    ```
 
 ### Rules
 
-- **Never commit or push directly to `main`.** `main` is protected and only changes through approved pull requests.
+- **Never commit or push directly to `master`.** `master` is protected and only changes through approved pull requests.
 - One branch per task or issue. Keep branches small and short-lived.
-- Pull from `main` often to avoid large merge conflicts.
+- Pull from `master` often to avoid large merge conflicts.
 
 ---
 
@@ -127,7 +127,7 @@ A task is done only when:
 - [ ] It runs locally without errors.
 - [ ] Tests are written and passing (once testing is set up).
 - [ ] The pull request has been reviewed and approved.
-- [ ] It has been merged into `main`.
+- [ ] It has been merged into `master`.
 - [ ] The issue is closed and the card is moved to **Done**.
 
 ---

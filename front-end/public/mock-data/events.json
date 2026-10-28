@@ -1,0 +1,62 @@
+[
+  {
+    "id": "event-1",
+    "applicationId": "app-2",
+    "type": "deadline",
+    "title": "Online assessment due",
+    "date": "2026-10-30",
+    "time": "23:59",
+    "notes": "HackerRank link is in the email from Oct 14.",
+    "reminder": { "enabled": true, "before": "1-day" }
+  },
+  {
+    "id": "event-2",
+    "applicationId": "app-1",
+    "type": "interview",
+    "title": "Onsite interview",
+    "date": "2026-11-03",
+    "time": "10:00",
+    "notes": "Three back-to-back rounds.",
+    "reminder": { "enabled": true, "before": "2-hours" }
+  },
+  {
+    "id": "event-3",
+    "applicationId": "app-4",
+    "type": "deadline",
+    "title": "Offer deadline",
+    "date": "2026-11-06",
+    "time": "17:00",
+    "notes": "",
+    "reminder": { "enabled": true, "before": "2-days" }
+  },
+  {
+    "id": "event-4",
+    "applicationId": "app-6",
+    "type": "interview",
+    "title": "Recruiter call",
+    "date": "2026-10-29",
+    "time": "14:30",
+    "notes": "",
+    "reminder": { "enabled": false, "before": "1-hour" }
+  },
+  {
+    "id": "event-5",
+    "applicationId": "app-3",
+    "type": "follow-up",
+    "title": "Follow up with recruiter",
+    "date": "2026-11-10",
+    "time": "09:00",
+    "notes": "Send a short thank-you and ask about the timeline.",
+    "reminder": { "enabled": true, "before": "1-day" }
+  },
+  {
+    "id": "event-6",
+    "applicationId": "app-8",
+    "type": "interview",
+    "title": "Technical interview",
+    "date": "2026-11-12",
+    "time": "11:00",
+    "notes": "",
+    "reminder": { "enabled": true, "before": "1-day" }
+  }
+]

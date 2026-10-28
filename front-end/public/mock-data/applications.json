@@ -1,0 +1,220 @@
+[
+  {
+    "id": "app-1",
+    "company": "Stripe",
+    "position": "Software Engineering Intern",
+    "location": "New York, NY",
+    "jobType": "internship",
+    "status": "interview",
+    "dateApplied": "2026-09-08",
+    "jobPostingUrl": "https://stripe.com/jobs",
+    "logoUrl": "https://picsum.photos/seed/stripe/96/96",
+    "recruiters": [{ "name": "Maya Chen", "email": "maya.chen@stripe.example", "phone": "+1 212 555 0142" }],
+    "resume": { "fileName": "resume-swe-fall26.pdf", "uploadedAt": "2026-09-08" },
+    "notes": "Referred by a friend on the payments team.",
+    "archived": false,
+    "statusHistory": [
+      { "status": "applied", "date": "2026-09-08" },
+      { "status": "online-assessment", "date": "2026-09-15" },
+      { "status": "interview", "date": "2026-10-02" }
+    ],
+    "interviewRounds": [
+      { "id": "round-1", "name": "Technical phone screen", "type": "technical", "date": "2026-10-06", "interviewer": "Daniel Ortiz", "notes": "Two medium array questions. Went well." }
+    ],
+    "offer": null
+  },
+  {
+    "id": "app-2",
+    "company": "Datadog",
+    "position": "Backend Engineering Intern",
+    "location": "New York, NY",
+    "jobType": "internship",
+    "status": "online-assessment",
+    "dateApplied": "2026-09-20",
+    "jobPostingUrl": "https://careers.datadoghq.com",
+    "logoUrl": "https://picsum.photos/seed/datadog/96/96",
+    "recruiters": [],
+    "resume": { "fileName": "resume-swe-fall26.pdf", "uploadedAt": "2026-09-20" },
+    "notes": "",
+    "archived": false,
+    "statusHistory": [
+      { "status": "applied", "date": "2026-09-20" },
+      { "status": "online-assessment", "date": "2026-10-14" }
+    ],
+    "interviewRounds": [],
+    "offer": null
+  },
+  {
+    "id": "app-3",
+    "company": "Figma",
+    "position": "Product Design Intern",
+    "location": "San Francisco, CA",
+    "jobType": "internship",
+    "status": "applied",
+    "dateApplied": "2026-10-12",
+    "jobPostingUrl": "https://www.figma.com/careers",
+    "logoUrl": "https://picsum.photos/seed/figma/96/96",
+    "recruiters": [],
+    "resume": { "fileName": "resume-design.pdf", "uploadedAt": "2026-10-12" },
+    "notes": "Portfolio link included in the application.",
+    "archived": false,
+    "statusHistory": [{ "status": "applied", "date": "2026-10-12" }],
+    "interviewRounds": [],
+    "offer": null
+  },
+  {
+    "id": "app-4",
+    "company": "Jane Street",
+    "position": "Software Engineer Intern",
+    "location": "New York, NY",
+    "jobType": "internship",
+    "status": "offer",
+    "dateApplied": "2026-08-25",
+    "jobPostingUrl": "https://www.janestreet.com/join-jane-street",
+    "logoUrl": "https://picsum.photos/seed/janestreet/96/96",
+    "recruiters": [{ "name": "Priya Raman", "email": "priya.raman@janestreet.example", "phone": "" }],
+    "resume": { "fileName": "resume-swe-fall26.pdf", "uploadedAt": "2026-08-25" },
+    "notes": "",
+    "archived": false,
+    "statusHistory": [
+      { "status": "applied", "date": "2026-08-25" },
+      { "status": "recruiter-screen", "date": "2026-09-03" },
+      { "status": "interview", "date": "2026-09-17" },
+      { "status": "offer", "date": "2026-10-09" }
+    ],
+    "interviewRounds": [
+      { "id": "round-2", "name": "Round 1 · Coding", "type": "technical", "date": "2026-09-17", "interviewer": "Alex Kim", "notes": "OCaml was not required." },
+      { "id": "round-3", "name": "Round 2 · Final", "type": "final", "date": "2026-09-29", "interviewer": "Sam Patel", "notes": "" }
+    ],
+    "offer": {
+      "baseSalary": "$12,500/month",
+      "signingBonus": "$5,000",
+      "startDate": "2027-06-01",
+      "location": "New York, NY",
+      "respondBy": "2026-11-06",
+      "remindBefore": "2-days",
+      "decision": "pending",
+      "notes": "Ask about housing stipend."
+    }
+  },
+  {
+    "id": "app-5",
+    "company": "Spotify",
+    "position": "Data Science Intern",
+    "location": "New York, NY",
+    "jobType": "internship",
+    "status": "rejected",
+    "dateApplied": "2026-09-02",
+    "jobPostingUrl": "https://www.lifeatspotify.com/jobs",
+    "logoUrl": "https://picsum.photos/seed/spotify/96/96",
+    "recruiters": [],
+    "resume": { "fileName": "resume-data.pdf", "uploadedAt": "2026-09-02" },
+    "notes": "",
+    "archived": false,
+    "statusHistory": [
+      { "status": "applied", "date": "2026-09-02" },
+      { "status": "rejected", "date": "2026-10-01" }
+    ],
+    "interviewRounds": [],
+    "offer": null
+  },
+  {
+    "id": "app-6",
+    "company": "Google",
+    "position": "STEP Intern",
+    "location": "Mountain View, CA",
+    "jobType": "internship",
+    "status": "recruiter-screen",
+    "dateApplied": "2026-09-28",
+    "jobPostingUrl": "https://careers.google.com",
+    "logoUrl": "https://picsum.photos/seed/google/96/96",
+    "recruiters": [{ "name": "Jordan Lee", "email": "jordan.lee@google.example", "phone": "+1 650 555 0119" }],
+    "resume": { "fileName": "resume-swe-fall26.pdf", "uploadedAt": "2026-09-28" },
+    "notes": "",
+    "archived": false,
+    "statusHistory": [
+      { "status": "applied", "date": "2026-09-28" },
+      { "status": "recruiter-screen", "date": "2026-10-20" }
+    ],
+    "interviewRounds": [],
+    "offer": null
+  },
+  {
+    "id": "app-7",
+    "company": "Duolingo",
+    "position": "Software Engineer, New Grad",
+    "location": "Pittsburgh, PA",
+    "jobType": "full-time",
+    "status": "applied",
+    "dateApplied": "2026-10-18",
+    "jobPostingUrl": "https://careers.duolingo.com",
+    "logoUrl": "https://picsum.photos/seed/duolingo/96/96",
+    "recruiters": [],
+    "resume": null,
+    "notes": "",
+    "archived": false,
+    "statusHistory": [{ "status": "applied", "date": "2026-10-18" }],
+    "interviewRounds": [],
+    "offer": null
+  },
+  {
+    "id": "app-8",
+    "company": "Bloomberg",
+    "position": "Software Engineering Intern",
+    "location": "New York, NY",
+    "jobType": "internship",
+    "status": "interview",
+    "dateApplied": "2026-09-11",
+    "jobPostingUrl": "https://www.bloomberg.com/company/careers",
+    "logoUrl": "https://picsum.photos/seed/bloomberg/96/96",
+    "recruiters": [],
+    "resume": { "fileName": "resume-swe-fall26.pdf", "uploadedAt": "2026-09-11" },
+    "notes": "",
+    "archived": false,
+    "statusHistory": [
+      { "status": "applied", "date": "2026-09-11" },
+      { "status": "interview", "date": "2026-10-16" }
+    ],
+    "interviewRounds": [],
+    "offer": null
+  },
+  {
+    "id": "app-9",
+    "company": "Meta",
+    "position": "Software Engineer Intern",
+    "location": "Menlo Park, CA",
+    "jobType": "internship",
+    "status": "rejected",
+    "dateApplied": "2025-09-14",
+    "jobPostingUrl": "https://www.metacareers.com",
+    "logoUrl": "https://picsum.photos/seed/meta/96/96",
+    "recruiters": [],
+    "resume": { "fileName": "resume-2025.pdf", "uploadedAt": "2025-09-14" },
+    "notes": "Last season's application.",
+    "archived": true,
+    "statusHistory": [
+      { "status": "applied", "date": "2025-09-14" },
+      { "status": "rejected", "date": "2025-10-30" }
+    ],
+    "interviewRounds": [],
+    "offer": null
+  },
+  {
+    "id": "app-10",
+    "company": "Airbnb",
+    "position": "Software Engineering Intern",
+    "location": "San Francisco, CA",
+    "jobType": "internship",
+    "status": "applied",
+    "dateApplied": "2025-10-02",
+    "jobPostingUrl": "https://careers.airbnb.com",
+    "logoUrl": "https://picsum.photos/seed/airbnb/96/96",
+    "recruiters": [],
+    "resume": null,
+    "notes": "",
+    "archived": true,
+    "statusHistory": [{ "status": "applied", "date": "2025-10-02" }],
+    "interviewRounds": [],
+    "offer": null
+  }
+]

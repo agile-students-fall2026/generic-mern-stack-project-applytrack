@@ -1,0 +1,41 @@
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  width: 100%;
+  max-width: var(--app-max-width);
+  height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  transform: translateX(-50%);
+  border-top: var(--border-width) solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.bottom-nav__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.bottom-nav__item:hover {
+  color: var(--color-text-muted);
+}
+
+.bottom-nav__item--active {
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Space at the bottom of tab pages so content isn't hidden behind the fixed nav */
+.tab-layout {
+  padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+}
