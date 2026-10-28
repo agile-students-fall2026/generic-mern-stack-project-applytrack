@@ -7,6 +7,6 @@
     "deadlineReminders": true,
     "interviewReminders": true,
     "followUpReminders": true,
-    "weeklySummary": false
+    "defaultReminder": "1-day"
   }
 }
