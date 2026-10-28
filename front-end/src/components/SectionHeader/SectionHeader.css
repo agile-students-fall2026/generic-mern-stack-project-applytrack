@@ -1,0 +1,21 @@
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: calc(var(--space-2) * -1); /* sit closer to the content below than to the content above */
+}
+
+.section-header__action {
+  padding: var(--space-1) 0;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+}
+
+.section-header__action:hover {
+  text-decoration: underline;
+}

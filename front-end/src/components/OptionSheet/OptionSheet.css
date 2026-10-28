@@ -1,0 +1,12 @@
+.option-sheet__cancel {
+  min-height: 52px;
+  border: none;
+  border-top: var(--border-width) solid var(--color-border);
+  background: transparent;
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.option-sheet__cancel:hover {
+  background: var(--color-surface-muted);
+}

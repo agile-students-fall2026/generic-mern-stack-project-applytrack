@@ -1,0 +1,17 @@
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  margin-left: calc(var(--space-3) * -1); /* line the arrow up with the page content */
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text);
+}
+
+.back-button:hover {
+  background: var(--color-surface-muted);
+}
