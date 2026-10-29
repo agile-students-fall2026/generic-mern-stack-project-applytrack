@@ -7,7 +7,7 @@ import './IconButton.css'
  *
  * @param icon     icon name, e.g. "plus"
  * @param label    required: describes the action for screen readers, e.g. "Add application"
- * @param variant  "primary" (solid square) | "ghost" (no background, default)
+ * @param variant  "primary" (solid square) | "outline" (bordered) | "ghost" (no background, default)
  * @param to       if given, renders a link instead of a <button>
  *
  * @example
