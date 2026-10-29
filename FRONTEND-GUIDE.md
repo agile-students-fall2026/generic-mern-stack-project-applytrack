@@ -15,7 +15,7 @@ npm run dev
 Open the URL it prints (usually http://localhost:5173). Then:
 
 - **http://localhost:5173/dev/components** shows every shared component, live, in both themes. Start here.
-- The Welcome page has shortcuts into the app until the login screens are built.
+- The app pages need you to be logged in. Use the demo account **alex.morgan@university.example** / **password123**, or sign up for a new one. You stay logged in after a reload.
 
 Before opening a pull request, run `npm run lint` and fix anything it reports.
 
@@ -23,15 +23,22 @@ Before opening a pull request, run `npm run lint` and fix anything it reports.
 
 Every screen already has a file with a "Not built yet" placeholder that names its owner. **Delete the `<PagePlaceholder>` and build your screen in its place.** The route and the back button already work.
 
+**Finished examples to copy from:**
+
+- `home/Home.jsx`: loading several things at once, lists, empty states
+- `profile/NotificationSettings.jsx`: a form that loads, saves and shows a success pop-up
+- `profile/EditAccount.jsx`: form validation, server errors on a field, a delete confirmation
+- `auth/SignUp.jsx`: validation that appears after the first submit and updates as you type
+
 | Owner | Screen | File (in `front-end/src/pages/`) | URL |
 | --- | --- | --- | --- |
-| Kumneger | Welcome | `auth/Welcome.jsx` | `/` |
-| Kumneger | Sign Up | `auth/SignUp.jsx` | `/signup` |
-| Kumneger | Log In | `auth/LogIn.jsx` | `/login` |
-| Kumneger | Forgot / Reset Password | `auth/ForgotPassword.jsx`, `auth/ResetPassword.jsx` | `/forgot-password`, `/reset-password` |
-| Kumneger | Profile | `profile/Profile.jsx` | `/profile` |
-| Kumneger | Edit Account | `profile/EditAccount.jsx` | `/profile/edit` |
-| Kumneger | Export Data | `profile/ExportData.jsx` | `/profile/export` |
+| Kumneger (done) | Welcome | `auth/Welcome.jsx` | `/` |
+| Kumneger (done) | Sign Up | `auth/SignUp.jsx` | `/signup` |
+| Kumneger (done) | Log In | `auth/LogIn.jsx` | `/login` |
+| Kumneger (done) | Forgot / Reset Password | `auth/ForgotPassword.jsx`, `auth/ResetPassword.jsx` | `/forgot-password`, `/reset-password` |
+| Kumneger (done) | Profile | `profile/Profile.jsx` | `/profile` |
+| Kumneger (done) | Edit Account | `profile/EditAccount.jsx` | `/profile/edit` |
+| Kumneger (done) | Export Data | `profile/ExportData.jsx` | `/profile/export` |
 | Bertin | Add Application | `applications/AddApplication.jsx` | `/applications/new` |
 | Bertin | Edit Application | `applications/EditApplication.jsx` | `/applications/:id/edit` |
 | Estifanos | Dashboard | `applications/Dashboard.jsx` | `/applications` |
@@ -42,8 +49,8 @@ Every screen already has a file with a "Not built yet" placeholder that names it
 | Ryan | Add / Edit Event | `events/AddEvent.jsx`, `events/EditEvent.jsx` | `/events/new`, `/events/:id/edit` |
 | Ryan | Interview Round | `applications/InterviewRound.jsx` | `/applications/:id/rounds/new`, `/applications/:id/rounds/:roundId` |
 | Ryan | Statistics | `stats/Statistics.jsx` | `/stats` |
-| **Unassigned** | Home | `home/Home.jsx` | `/home` |
-| **Unassigned** | Notification Settings | `profile/NotificationSettings.jsx` | `/profile/notifications` |
+| Kumneger (done) | Home | `home/Home.jsx` | `/home` |
+| Kumneger (done) | Notification Settings | `profile/NotificationSettings.jsx` | `/profile/notifications` |
 
 Pop-ups (delete confirmations, "saved" messages, update status, sort) are **not** separate pages. Build them inside the page that opens them, using the dialog components below. The wireframe for each one is in `ux-design/prototype/`.
 
@@ -131,7 +138,7 @@ The course requires that **no data that will come from the back-end is written d
 - The mock data lives in `front-end/public/mock-data/*.json`. Edit those files if you need more examples.
 - Changes (add, edit, delete) work while the app is open and reset when you reload. That's expected for Sprint 1.
 - Use the lists in `src/constants/index.js` (statuses, job types, event types, sort options...) for dropdowns and labels. Don't type them by hand.
-- Use `src/utils/format.js` to show dates and times (`formatDate`, `formatTime`...).
+- Use `src/utils/format.js` to show dates and times (`formatDate`, `formatTime`...), and `src/utils/validation.js` to check form input (`validateRequired`, `validateEmail`...).
 
 Main api functions:
 
@@ -143,7 +150,7 @@ Main api functions:
 | Events | `getEvents()`, `getEvents({ applicationId })`, `getEvent(id)`, `createEvent(fields)`, `updateEvent(id, changes)`, `deleteEvent(id)` |
 | Stats and export | `getStatistics()`, `exportApplications({ format, includeArchived })` |
 | Account | `getCurrentUser()`, `updateCurrentUser(changes)`, `deleteAccount()`, `getNotificationSettings()`, `updateNotificationSettings(changes)` |
-| Auth | use `useAuth()`: `logIn()`, `signUp()`, `logOut()`; plus `api.requestPasswordReset()`, `api.resetPassword()` |
+| Auth | use `useAuth()`: `logIn()`, `signUp()`, `logOut()`, `deleteAccount()`; plus `api.requestPasswordReset()`, `api.resetPassword()`, `api.changePassword()` |
 
 Look at `public/mock-data/applications.json` to see every field an application has (company, status, recruiters, resume, interviewRounds, offer...).
 

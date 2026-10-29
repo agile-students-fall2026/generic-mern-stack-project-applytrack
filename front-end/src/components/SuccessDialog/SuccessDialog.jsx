@@ -8,16 +8,18 @@ import './SuccessDialog.css'
  * Covers: Application saved, Changes saved, Event saved, Offer saved, Round saved, Settings saved,
  * Account created, Password updated, Reset link sent, Export complete.
  *
- * @param open       whether it's showing
- * @param title      e.g. "Application saved"
- * @param message    optional extra line, e.g. "You can find it on your dashboard."
- * @param doneLabel  button text (default "Done")
- * @param onDone     called when the user taps the button (usually navigate somewhere)
+ * @param open            whether it's showing
+ * @param title           e.g. "Application saved"
+ * @param message         optional extra line, e.g. "You can find it on your dashboard."
+ * @param doneLabel       button text (default "Done")
+ * @param onDone          called when the user taps the button (usually navigate somewhere)
+ * @param secondaryLabel  optional second, text-style button under the main one
+ * @param onSecondary     called when the second button is tapped
  *
  * @example
  * <SuccessDialog open={saved} title="Application saved" onDone={() => navigate(`/applications/${id}`)} />
  */
-export function SuccessDialog({ open, title, message, doneLabel = 'Done', onDone }) {
+export function SuccessDialog({ open, title, message, doneLabel = 'Done', onDone, secondaryLabel, onSecondary }) {
   return (
     <Modal open={open} onClose={onDone} title={title}>
       <div className="dialog__body success-dialog__body">
@@ -29,6 +31,11 @@ export function SuccessDialog({ open, title, message, doneLabel = 'Done', onDone
       </div>
       <div className="dialog__actions dialog__actions--single">
         <Button onClick={onDone}>{doneLabel}</Button>
+        {secondaryLabel && (
+          <Button variant="ghost" onClick={onSecondary}>
+            {secondaryLabel}
+          </Button>
+        )}
       </div>
     </Modal>
   )

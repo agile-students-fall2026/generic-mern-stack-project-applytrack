@@ -82,6 +82,8 @@ npm run dev
 
 Open the address shown in the terminal (usually http://localhost:5173). The app is designed for phones; on a computer, use your browser's mobile view for the best experience.
 
+To look around, log in with the demo account **alex.morgan@university.example** / **password123**, or create your own account on the Sign Up screen. Accounts are stored only in your browser for now.
+
 Other commands (run inside `front-end/`):
 
 | Command | What it does |

@@ -2,56 +2,49 @@ import { useCallback, useMemo, useState } from 'react'
 import { AuthContext } from './AuthContext'
 import { api } from '../api'
 
-const STORAGE_KEY = 'applytrack-logged-in'
-
-function readLoggedIn() {
-  try {
-    return localStorage.getItem(STORAGE_KEY) === 'true'
-  } catch {
-    return false
-  }
-}
-
-function writeLoggedIn(value) {
-  try {
-    if (value) localStorage.setItem(STORAGE_KEY, 'true')
-    else localStorage.removeItem(STORAGE_KEY)
-  } catch {
-    // ignore storage errors
-  }
-}
-
 /**
- * Sprint 1 placeholder authentication.
+ * Keeps track of whether someone is logged in and provides log in / sign up / log out.
  *
- * Login, sign-up and logout don't check anything yet: they just flip a "logged in" flag
- * (remembered across reloads) so the screens can be demoed. Real authentication arrives
- * with the back-end, and only the api calls below will need to change.
+ * The api remembers the session on this device, so a reload keeps you logged in.
+ * Each function throws an Error with a user-friendly message if it fails
+ * (e.g. "Incorrect password"), so pages can show it.
+ *
+ * After logOut() or deleteAccount() you don't need to navigate anywhere yourself: the route
+ * guard in App.jsx sees `justLoggedOut` and takes the user to the Welcome screen.
  */
 export function AuthProvider({ children }) {
-  const [isLoggedIn, setIsLoggedIn] = useState(readLoggedIn)
+  const [isLoggedIn, setIsLoggedIn] = useState(() => api.hasSession())
+  const [justLoggedOut, setJustLoggedOut] = useState(false)
 
   const logIn = useCallback(async (credentials) => {
-    await api.logIn(credentials)
-    writeLoggedIn(true)
+    const user = await api.logIn(credentials)
+    setJustLoggedOut(false)
     setIsLoggedIn(true)
+    return user
   }, [])
 
   const signUp = useCallback(async (details) => {
-    await api.signUp(details)
-    writeLoggedIn(true)
+    const user = await api.signUp(details)
+    setJustLoggedOut(false)
     setIsLoggedIn(true)
+    return user
   }, [])
 
   const logOut = useCallback(async () => {
     await api.logOut()
-    writeLoggedIn(false)
+    setJustLoggedOut(true)
+    setIsLoggedIn(false)
+  }, [])
+
+  const deleteAccount = useCallback(async () => {
+    await api.deleteAccount()
+    setJustLoggedOut(true)
     setIsLoggedIn(false)
   }, [])
 
   const value = useMemo(
-    () => ({ isLoggedIn, logIn, signUp, logOut }),
-    [isLoggedIn, logIn, signUp, logOut],
+    () => ({ isLoggedIn, justLoggedOut, logIn, signUp, logOut, deleteAccount }),
+    [isLoggedIn, justLoggedOut, logIn, signUp, logOut, deleteAccount],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
