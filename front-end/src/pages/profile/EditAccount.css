@@ -1,0 +1,12 @@
+.edit-account__photo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.edit-account__delete-error {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-danger);
+}

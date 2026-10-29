@@ -1,22 +1,28 @@
 /*
  * Mock back-end for Sprint 1.
  *
- * Data is fetched from the JSON files in public/mock-data/ and then kept in memory, so
- * creating, editing and deleting work while the app is open. Reloading the page resets it.
+ * Applications and events are fetched from the JSON files in public/mock-data/ and kept in
+ * memory, so creating, editing and deleting work while the app is open (reloading resets them).
+ *
+ * Accounts and the login session are saved in the browser (localStorage), so signing up,
+ * logging in, changing your password and deleting your account behave like a real app and
+ * survive a reload. Demo account: alex.morgan@university.example / password123
  *
  * Every function is async and returns copies of the data, exactly like a real API would.
  * In Sprint 2 the bodies of these functions will be replaced with calls to our Express
  * back-end; pages that use `api.*` won't need to change.
  */
 
-import { FINAL_STATUSES } from '../constants'
-import { todayString } from '../utils/format'
+import { FINAL_STATUSES, getLabel, getStatus, JOB_TYPES } from '../constants'
+import { formatDate, todayString } from '../utils/format'
+import { createTextPdf } from '../utils/pdf'
 
 const FAKE_DELAY_MS = 250 // simulate network time so loading states are visible
 
 const wait = (ms = FAKE_DELAY_MS) => new Promise((resolve) => setTimeout(resolve, ms))
 const copy = (value) => structuredClone(value)
 const newId = (prefix) => `${prefix}-${crypto.randomUUID().slice(0, 8)}`
+const normalize = (text = '') => text.trim().toLowerCase()
 
 let store = null
 
@@ -26,15 +32,11 @@ async function fetchJson(file) {
   return response.json()
 }
 
-// Load all mock data once, the first time any api function is called.
+// Load applications and events once, the first time any api function needs them.
 async function getStore() {
   if (!store) {
-    const [applications, events, user] = await Promise.all([
-      fetchJson('applications.json'),
-      fetchJson('events.json'),
-      fetchJson('user.json'),
-    ])
-    store = { applications, events, user }
+    const [applications, events] = await Promise.all([fetchJson('applications.json'), fetchJson('events.json')])
+    store = { applications, events }
   }
   await wait()
   return store
@@ -52,69 +54,198 @@ function findEvent(data, id) {
   return event
 }
 
-const normalize = (text = '') => text.trim().toLowerCase()
+/* ===================== Saved accounts and session ===================== */
+
+const ACCOUNTS_KEY = 'applytrack-mock-accounts'
+const SESSION_KEY = 'applytrack-session'
+const RESET_KEY = 'applytrack-password-reset'
+const DEMO_PASSWORD = 'password123'
+
+const DEFAULT_NOTIFICATION_SETTINGS = {
+  deadlineReminders: true,
+  interviewReminders: true,
+  followUpReminders: true,
+  defaultReminder: '1-day',
+}
+
+function readStorage(key, fallback = null) {
+  try {
+    const value = localStorage.getItem(key)
+    return value === null ? fallback : JSON.parse(value)
+  } catch {
+    return fallback
+  }
+}
+
+function writeStorage(key, value) {
+  try {
+    if (value === null) localStorage.removeItem(key)
+    else localStorage.setItem(key, JSON.stringify(value))
+  } catch {
+    throw new Error("Couldn't save. Your browser storage may be full or turned off.")
+  }
+}
+
+// The first time, start with the demo account from user.json.
+async function getAccounts() {
+  const saved = readStorage(ACCOUNTS_KEY)
+  if (saved) return saved
+  const demoUser = await fetchJson('user.json')
+  const accounts = [{ ...demoUser, password: DEMO_PASSWORD }]
+  writeStorage(ACCOUNTS_KEY, accounts)
+  return accounts
+}
+
+function saveAccounts(accounts) {
+  writeStorage(ACCOUNTS_KEY, accounts)
+}
+
+// Never send the password back to the page.
+function toPublicUser(account) {
+  const user = copy(account)
+  delete user.password
+  return user
+}
+
+/** True if someone is logged in on this device (synchronous, used when the app starts). */
+function hasSession() {
+  return Boolean(readStorage(SESSION_KEY))
+}
+
+async function getLoggedInAccount(accounts) {
+  const email = readStorage(SESSION_KEY)
+  const account = email && accounts.find((item) => normalize(item.email) === normalize(email))
+  if (!account) {
+    writeStorage(SESSION_KEY, null)
+    throw new Error('You are not logged in')
+  }
+  return account
+}
 
 /* ===================== Auth ===================== */
-// These accept any input for now. Real validation comes with the back-end.
 
 async function logIn({ email, password } = {}) {
   await wait()
-  if (!email || !password) throw new Error('Enter your email and password')
-  return { ok: true }
+  const accounts = await getAccounts()
+  const account = accounts.find((item) => normalize(item.email) === normalize(email))
+  if (!account) throw new Error('No account found with that email')
+  if (account.password !== password) throw new Error('Incorrect password')
+  writeStorage(SESSION_KEY, account.email)
+  return toPublicUser(account)
 }
 
 async function signUp({ fullName, email, password } = {}) {
-  const data = await getStore()
-  if (!fullName || !email || !password) throw new Error('Fill in all fields')
-  data.user = { ...data.user, fullName, email }
-  return copy(data.user)
+  await wait()
+  const accounts = await getAccounts()
+  if (accounts.some((item) => normalize(item.email) === normalize(email))) {
+    throw new Error('An account with this email already exists')
+  }
+  const account = {
+    id: newId('user'),
+    fullName: fullName.trim(),
+    email: email.trim(),
+    password,
+    avatarUrl: `https://picsum.photos/seed/${encodeURIComponent(normalize(email))}/200/200`,
+    notificationSettings: { ...DEFAULT_NOTIFICATION_SETTINGS },
+  }
+  saveAccounts([...accounts, account])
+  writeStorage(SESSION_KEY, account.email)
+  return toPublicUser(account)
 }
 
 async function logOut() {
   await wait()
+  writeStorage(SESSION_KEY, null)
   return { ok: true }
 }
 
+/**
+ * Pretends to email a reset link. For the demo, the next resetPassword() call applies to this email.
+ * Like real apps, it doesn't reveal whether the email has an account.
+ */
 async function requestPasswordReset({ email } = {}) {
   await wait()
-  if (!email) throw new Error('Enter your email')
+  writeStorage(RESET_KEY, email.trim())
   return { ok: true }
 }
 
+/** Sets a new password for the email used in requestPasswordReset(). */
 async function resetPassword({ newPassword } = {}) {
   await wait()
-  if (!newPassword) throw new Error('Enter a new password')
+  const email = readStorage(RESET_KEY)
+  const accounts = await getAccounts()
+  const account = email && accounts.find((item) => normalize(item.email) === normalize(email))
+  if (!account) {
+    throw new Error('This reset link is invalid or has expired. Request a new one from the Forgot Password page.')
+  }
+  account.password = newPassword
+  saveAccounts(accounts)
+  writeStorage(RESET_KEY, null)
   return { ok: true }
 }
 
 /* ===================== Current user ===================== */
 
 async function getCurrentUser() {
-  const data = await getStore()
-  return copy(data.user)
+  await wait()
+  const accounts = await getAccounts()
+  return toPublicUser(await getLoggedInAccount(accounts))
 }
 
+/** Update fullName, email and/or avatarUrl. */
 async function updateCurrentUser(changes) {
-  const data = await getStore()
-  data.user = { ...data.user, ...changes }
-  return copy(data.user)
+  await wait()
+  const accounts = await getAccounts()
+  const account = await getLoggedInAccount(accounts)
+  if (changes.email && normalize(changes.email) !== normalize(account.email)) {
+    if (accounts.some((item) => normalize(item.email) === normalize(changes.email))) {
+      throw new Error('Another account already uses this email')
+    }
+  }
+  const { fullName, email, avatarUrl } = changes
+  Object.assign(account, {
+    ...(fullName !== undefined && { fullName: fullName.trim() }),
+    ...(email !== undefined && { email: email.trim() }),
+    ...(avatarUrl !== undefined && { avatarUrl }),
+  })
+  saveAccounts(accounts)
+  writeStorage(SESSION_KEY, account.email)
+  return toPublicUser(account)
+}
+
+async function changePassword({ currentPassword, newPassword }) {
+  await wait()
+  const accounts = await getAccounts()
+  const account = await getLoggedInAccount(accounts)
+  if (account.password !== currentPassword) throw new Error('Current password is incorrect')
+  account.password = newPassword
+  saveAccounts(accounts)
+  return { ok: true }
 }
 
 async function deleteAccount() {
-  await getStore()
-  store = null // forget everything; it reloads fresh from the JSON files next time
+  await wait()
+  const accounts = await getAccounts()
+  const account = await getLoggedInAccount(accounts)
+  saveAccounts(accounts.filter((item) => item !== account))
+  writeStorage(SESSION_KEY, null)
   return { ok: true }
 }
 
 async function getNotificationSettings() {
-  const data = await getStore()
-  return copy(data.user.notificationSettings)
+  await wait()
+  const accounts = await getAccounts()
+  const account = await getLoggedInAccount(accounts)
+  return copy({ ...DEFAULT_NOTIFICATION_SETTINGS, ...account.notificationSettings })
 }
 
 async function updateNotificationSettings(changes) {
-  const data = await getStore()
-  data.user.notificationSettings = { ...data.user.notificationSettings, ...changes }
-  return copy(data.user.notificationSettings)
+  await wait()
+  const accounts = await getAccounts()
+  const account = await getLoggedInAccount(accounts)
+  account.notificationSettings = { ...DEFAULT_NOTIFICATION_SETTINGS, ...account.notificationSettings, ...changes }
+  saveAccounts(accounts)
+  return copy(account.notificationSettings)
 }
 
 /* ===================== Applications ===================== */
@@ -290,19 +421,64 @@ async function getStatistics() {
 
 /* ===================== Export ===================== */
 
-/** Builds the export file. Returns { fileName, mimeType, content }; the page decides how to download it. */
+const EXPORT_COLUMNS = [
+  { header: 'Company', value: (item) => item.company },
+  { header: 'Position', value: (item) => item.position },
+  { header: 'Location', value: (item) => item.location },
+  { header: 'Job type', value: (item) => getLabel(JOB_TYPES, item.jobType) },
+  { header: 'Status', value: (item) => getStatus(item.status).label },
+  { header: 'Date applied', value: (item) => item.dateApplied },
+  { header: 'Archived', value: (item) => (item.archived ? 'Yes' : 'No') },
+  { header: 'Job posting', value: (item) => item.jobPostingUrl },
+  { header: 'Recruiter', value: (item) => item.recruiters?.[0]?.name ?? '' },
+  { header: 'Recruiter email', value: (item) => item.recruiters?.[0]?.email ?? '' },
+  { header: 'Resume used', value: (item) => item.resume?.fileName ?? '' },
+  { header: 'Notes', value: (item) => item.notes },
+]
+
+function buildCsv(applications) {
+  const escape = (value) => `"${String(value ?? '').replaceAll('"', '""')}"`
+  const rows = applications.map((item) => EXPORT_COLUMNS.map((column) => escape(column.value(item))).join(','))
+  // \uFEFF tells Excel the file is UTF-8, so accented names display correctly
+  return '\uFEFF' + [EXPORT_COLUMNS.map((column) => escape(column.header)).join(','), ...rows].join('\r\n')
+}
+
+function buildPdf(applications) {
+  const lines = [
+    { text: 'ApplyTrack - Applications', bold: true, size: 16 },
+    { text: `Exported ${formatDate(todayString())} - ${applications.length} applications` },
+    { text: '' },
+  ]
+  for (const item of applications) {
+    lines.push({ text: `${item.company} - ${item.position}`, bold: true, size: 11 })
+    lines.push({
+      text: `${getStatus(item.status).label} - applied ${formatDate(item.dateApplied)}${item.archived ? ' - archived' : ''}`,
+    })
+    const details = [item.location, getLabel(JOB_TYPES, item.jobType)].filter(Boolean).join(' - ')
+    if (details) lines.push({ text: details })
+    if (item.jobPostingUrl) lines.push({ text: item.jobPostingUrl })
+    if (item.notes) lines.push({ text: `Notes: ${item.notes}` })
+    lines.push({ text: '' })
+  }
+  return createTextPdf(lines)
+}
+
+/**
+ * Builds the export file.
+ * Returns { fileName, mimeType, content, count }; pass it to downloadFile() from utils/files.js.
+ */
 async function exportApplications({ format = 'csv', includeArchived = false } = {}) {
   const applications = await getApplications({ includeArchived })
-  const columns = ['company', 'position', 'location', 'jobType', 'status', 'dateApplied', 'jobPostingUrl', 'notes']
-  const escape = (value) => `"${String(value ?? '').replaceAll('"', '""')}"`
-  const rows = applications.map((item) => columns.map((column) => escape(item[column])).join(','))
-  const content = [columns.join(','), ...rows].join('\n')
-  // PDF export is a placeholder until the back-end can generate real PDFs.
-  return { fileName: `applytrack-applications.${format}`, mimeType: 'text/csv', content }
+  const fileName = `applytrack-applications-${todayString()}.${format}`
+  if (format === 'pdf') {
+    return { fileName, mimeType: 'application/pdf', content: buildPdf(applications), count: applications.length }
+  }
+  return { fileName, mimeType: 'text/csv', content: buildCsv(applications), count: applications.length }
 }
 
 export const mockApi = {
   // auth
+  hasSession,
   logIn,
   signUp,
   logOut,
@@ -311,6 +487,7 @@ export const mockApi = {
   // user
   getCurrentUser,
   updateCurrentUser,
+  changePassword,
   deleteAccount,
   getNotificationSettings,
   updateNotificationSettings,

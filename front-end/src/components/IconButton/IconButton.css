@@ -17,6 +17,15 @@
   background: var(--color-surface-muted);
 }
 
+.icon-button--outline {
+  border: var(--border-width) solid var(--color-border-strong);
+  background: var(--color-surface);
+}
+
+.icon-button--outline:hover {
+  border-color: var(--color-text);
+}
+
 .icon-button--primary {
   background: var(--color-primary);
   color: var(--color-on-primary);
