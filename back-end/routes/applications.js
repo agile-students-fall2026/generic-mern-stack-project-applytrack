@@ -6,6 +6,7 @@
  * Order matters: Express uses the first route that matches, so /duplicate must stay above /:id.
  */
 import { Router } from 'express'
+import { db, newId, todayString } from '../data/store.js'
 import { notImplemented } from '../middleware/errors.js'
 
 const router = Router()
@@ -31,13 +32,41 @@ router.get('/duplicate', notImplemented)
 router.get('/:id', notImplemented)
 
 /**
- * POST /api/applications  (Bertin #1, #49 recruiters, #54 resume, front-end: createApplication)
+ * POST /api/applications  (owner: Bertin #1, #49 recruiters, #54 resume, front-end: createApplication)
  * Body: { company, position, dateApplied, status, location, jobType, jobPostingUrl, recruiters, resume, notes }
  * Fill in defaults and the new id the same way createApplication in the front-end mockApi.js does.
  * 201 -> the new application. 400 company or position missing.
  */
-router.post('/', notImplemented)
+router.post('/', (req, res) => {
+  const fields = req.body ?? {}
+  const company = fields.company.trim()
+  const position = fields.position.trim()
+  const status = fields.status || 'applied'
 
+  // The new application, with a default for every field that was left out
+  const application = {
+    id: newId('app'),
+    company,
+    position,
+    location: fields.location || '',
+    jobType: fields.jobType || 'internship',
+    status,
+    dateApplied: fields.dateApplied || todayString(),
+    jobPostingUrl: fields.jobPostingUrl || '',
+    logoUrl: `https://picsum.photos/seed/${encodeURIComponent(company.toLowerCase())}/96/96`,
+    recruiters: fields.recruiters || [], // #49 recruiter contacts
+    resume: fields.resume || null, // #54 resume used, e.g. { fileName, uploadedAt }
+    notes: fields.notes || '',
+    archived: false,
+    statusHistory: [{ status, date: todayString() }],
+    interviewRounds: [],
+    offer: null,
+  }
+
+  // Newest first, like the dashboard shows them
+  db.applications.unshift(application)
+  res.status(201).json(application)
+})
 /**
  * PATCH /api/applications/:id  (Bertin #43, front-end: updateApplication)
  * Body: any fields to change. A new status also adds { status, date } to statusHistory.
