@@ -7,9 +7,13 @@
  */
 import { Router } from 'express'
 import { db, newId, todayString } from '../data/store.js'
-import { notImplemented } from '../middleware/errors.js'
-
+import { httpError, notImplemented } from '../middleware/errors.js'
 const router = Router()
+
+/** True when a required text field is missing or only spaces */
+function isBlank(value) {
+  return typeof value !== 'string' || value.trim() === ''
+}
 
 /**
  * GET /api/applications  (Estifanos #63 and #18, front-end: getApplications, getArchivedApplications)
@@ -39,6 +43,9 @@ router.get('/:id', notImplemented)
  */
 router.post('/', (req, res) => {
   const fields = req.body ?? {}
+  // Company and position are required; every other field is optional
+  if (isBlank(fields.company)) throw httpError(400, 'Company is required')
+  if (isBlank(fields.position)) throw httpError(400, 'Position is required')
   const company = fields.company.trim()
   const position = fields.position.trim()
   const status = fields.status || 'applied'
