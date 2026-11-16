@@ -47,7 +47,7 @@ These students are a good initial user group because many of them apply to a lar
 ---
 ## History
 
-ApplyTrack started as a team project for Agile Software Development and DevOps course at NYU in Fall 2026. 
+ApplyTrack started as a team project for [Agile Software Development and DevOps](https://knowledge.kitchen/content/courses/agile-development-and-devops/syllabus/) course at NYU in Fall 2026. 
 
 ## Contributing
 
