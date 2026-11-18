@@ -20,7 +20,18 @@ function isBlank(value) {
  * Query: ?status=interview to filter by status; ?archived=true for only archived ones (default: only active)
  * 200 -> array of applications
  */
-router.get('/', notImplemented)
+router.get('/', (req, res) => {
+  // ?archived=true returns only archived applications, otherwise only current ones
+  const archived = req.query.archived === 'true'
+  let applications = db.applications.filter((application) => Boolean(application.archived) === archived)
+
+  // ?status=interview keeps only applications with that status
+  if (req.query.status) {
+    applications = applications.filter((application) => application.status === req.query.status)
+  }
+
+  res.json(applications)
+})
 
 /**
  * GET /api/applications/duplicate?company=Stripe&position=Intern  (Bertin #17, front-end: findDuplicateApplication)
