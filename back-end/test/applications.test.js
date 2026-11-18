@@ -104,4 +104,25 @@ describe('GET /api/applications/duplicate', () => {
       .query({ company: 'acme', position: 'intern' })
     expect(res.body.company).to.equal('Acme')
   })
+
+  // Same company but a different position is not a duplicate, so the route returns null
+  it('returns null when there is no match', async () => {
+    const res = await request
+      .execute(app)
+      .get('/api/applications/duplicate')
+      .query({ company: 'Stripe', position: 'Product Manager' })
+    expect(res).to.have.status(200)
+    expect(res.body).to.equal(null)
+  })
+
+  // The check needs both fields, so a request without one is rejected
+  it('responds 400 when the company or position is missing', async () => {
+    const noCompany = await request.execute(app).get('/api/applications/duplicate').query({ position: 'Intern' })
+    expect(noCompany).to.have.status(400)
+    expect(noCompany.body.error).to.equal('Company is required')
+
+    const noPosition = await request.execute(app).get('/api/applications/duplicate').query({ company: 'Stripe' })
+    expect(noPosition).to.have.status(400)
+    expect(noPosition.body.error).to.equal('Position is required')
+  })
 })
