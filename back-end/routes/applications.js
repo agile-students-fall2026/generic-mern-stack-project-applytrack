@@ -15,6 +15,11 @@ function isBlank(value) {
   return typeof value !== 'string' || value.trim() === ''
 }
 
+/** Makes text easy to compare: no extra spaces and all lower case ("  Stripe  Inc " -> "stripe inc") */
+function normalize(text) {
+  return text.trim().replace(/\s+/g, ' ').toLowerCase()
+}
+
 /**
  * GET /api/applications  (Estifanos #63 and #18, front-end: getApplications, getArchivedApplications)
  * Query: ?status=interview to filter by status; ?archived=true for only archived ones (default: only active)
@@ -35,10 +40,19 @@ router.get('/', (req, res) => {
 
 /**
  * GET /api/applications/duplicate?company=Stripe&position=Intern  (Bertin #17, front-end: findDuplicateApplication)
- * Same company and position, ignoring upper/lower case and extra spaces.
  * 200 -> the matching application, or null
  */
-router.get('/duplicate', notImplemented)
+router.get('/duplicate', (req, res) => {
+  const { company, position } = req.query
+  if (isBlank(company)) throw httpError(400, 'Company is required')
+  if (isBlank(position)) throw httpError(400, 'Position is required')
+
+  const match = db.applications.find(
+    (application) =>
+      normalize(application.company) === normalize(company) && normalize(application.position) === normalize(position),
+  )
+  res.json(match ?? null)
+})
 
 /**
  * GET /api/applications/:id  (Estifanos #39 and #67, front-end: getApplication)
