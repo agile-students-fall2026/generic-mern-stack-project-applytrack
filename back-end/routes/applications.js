@@ -15,6 +15,20 @@ function isBlank(value) {
   return typeof value !== 'string' || value.trim() === ''
 }
 
+// The fields the Edit Application form can change
+const EDITABLE_FIELDS = [
+  'company',
+  'position',
+  'location',
+  'jobType',
+  'status',
+  'dateApplied',
+  'jobPostingUrl',
+  'recruiters',
+  'resume',
+  'notes',
+]
+
 /** Makes text easy to compare: no extra spaces and all lower case ("  Stripe  Inc " -> "stripe inc") */
 function normalize(text) {
   return text.trim().replace(/\s+/g, ' ').toLowerCase()
@@ -109,7 +123,30 @@ router.post('/', (req, res) => {
  * Body: any fields to change. A new status also adds { status, date } to statusHistory.
  * 200 -> the updated application. 404 not found.
  */
-router.patch('/:id', notImplemented)
+router.patch('/:id', (req, res) => {
+  const application = db.applications.find((item) => item.id === req.params.id)
+  if (!application) throw httpError(404, 'Application not found')
+  const changes = req.body ?? {}
+  
+  // Company and position can be left out, but they can't be changed to empty
+  if (changes.company !== undefined && isBlank(changes.company)) throw httpError(400, 'Company is required')
+  if (changes.position !== undefined && isBlank(changes.position)) throw httpError(400, 'Position is required')
+
+  // A new status is also added to the status history, with today's date
+  if (changes.status && changes.status !== application.status) {
+    application.statusHistory.push({ status: changes.status, date: todayString() })
+  }
+
+  // Only copy the fields the Edit form can change. The id, status history, archive, offer and
+  // interview rounds can't be changed here (archive, offer and rounds have their own routes).
+  for (const field of EDITABLE_FIELDS) {
+    if (changes[field] !== undefined) application[field] = changes[field]
+  }
+  application.company = application.company.trim()
+  application.position = application.position.trim()
+
+  res.json(application)
+})
 
 /**
  * DELETE /api/applications/:id  (Bertin #46, front-end: deleteApplication)
