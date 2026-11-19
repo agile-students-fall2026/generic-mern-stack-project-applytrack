@@ -5,7 +5,7 @@
 import { Router } from 'express'
 import { db, newId } from '../data/store.js'
 import { httpError, notImplemented } from '../middleware/errors.js'
-import { createToken, findUserByEmail, hashPassword, normalizeEmail, toPublicUser } from '../utils/auth.js'
+import { createToken, findUserByEmail, hashPassword, normalizeEmail, passwordMatches, toPublicUser } from '../utils/auth.js'
 import { isBlank, isValidEmail, isValidPassword, MIN_PASSWORD_LENGTH } from '../utils/validation.js'
 
 const router = Router()
@@ -50,9 +50,20 @@ router.post('/signup', async (req, res) => {
 /**
  * POST /api/auth/login  (#13, front-end: logIn)
  * Body: { email, password }
- * 200 -> the user. 401 wrong email or password.
+ * 200 -> { user, token }. 400 missing email or password, 401 wrong email or password.
  */
-router.post('/login', notImplemented)
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body ?? {}
+  if (isBlank(email) || isBlank(password)) throw httpError(400, 'Enter your email and password')
+
+  const user = findUserByEmail(email)
+  // Same message whether the email or the password is wrong, so nobody can find out which emails have accounts.
+  if (!user || !(await passwordMatches(password, user.passwordHash))) {
+    throw httpError(401, 'Incorrect email or password')
+  }
+
+  res.json({ user: toPublicUser(user), token: createToken(user) })
+})
 
 /**
  * POST /api/auth/logout  (#14, front-end: logOut)

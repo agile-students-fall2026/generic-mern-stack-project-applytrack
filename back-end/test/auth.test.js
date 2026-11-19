@@ -57,3 +57,39 @@ describe('POST /api/auth/signup', () => {
     expect(db.users).to.have.length(count)
   })
 })
+
+describe('POST /api/auth/login', () => {
+  it('logs in with the right email and password (#13)', async () => {
+    const res = await request.execute(app).post('/api/auth/login').send(DEMO)
+    expect(res).to.have.status(200)
+    expect(res.body.user.email).to.equal(DEMO.email)
+    expect(res.body.user).to.not.have.property('passwordHash')
+    expect(res.body.token).to.be.a('string')
+  })
+
+  it('accepts the email in any case', async () => {
+    const res = await request.execute(app).post('/api/auth/login').send({ ...DEMO, email: 'Alex.Morgan@University.example' })
+    expect(res).to.have.status(200)
+  })
+
+  it('a new account can log in with the details it signed up with (#10)', async () => {
+    await request.execute(app).post('/api/auth/signup').send(NEW_USER)
+    const res = await request.execute(app).post('/api/auth/login').send({ email: NEW_USER.email, password: NEW_USER.password })
+    expect(res).to.have.status(200)
+    expect(res.body.user.fullName).to.equal(NEW_USER.fullName)
+  })
+
+  it('rejects a wrong password or unknown email with the same message', async () => {
+    const wrongPassword = await request.execute(app).post('/api/auth/login').send({ ...DEMO, password: 'nope-nope' })
+    const unknownEmail = await request.execute(app).post('/api/auth/login').send({ ...DEMO, email: 'nobody@example.com' })
+    expect(wrongPassword).to.have.status(401)
+    expect(unknownEmail).to.have.status(401)
+    expect(wrongPassword.body.error).to.equal('Incorrect email or password')
+    expect(unknownEmail.body.error).to.equal(wrongPassword.body.error)
+  })
+
+  it('rejects a missing email or password', async () => {
+    const res = await request.execute(app).post('/api/auth/login').send({ email: DEMO.email })
+    expect(res).to.have.status(400)
+  })
+})
