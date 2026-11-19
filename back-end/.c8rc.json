@@ -1,5 +1,5 @@
 {
   "all": true,
-  "include": ["app.js", "data/**/*.js", "middleware/**/*.js", "routes/**/*.js"],
+  "include": ["app.js", "data/**/*.js", "middleware/**/*.js", "routes/**/*.js", "utils/**/*.js"],
   "reporter": ["text", "html"]
 }

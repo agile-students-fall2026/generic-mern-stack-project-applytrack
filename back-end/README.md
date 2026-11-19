@@ -10,10 +10,14 @@ data/
   store.js        db: the mock data in memory, plus newId(), todayString(), resetStore()
 middleware/
   errors.js       httpError(), notImplemented, and the handlers for 404s and errors
-  requireAuth.js  runs before private routes and sets req.user
+  requireAuth.js  runs before private routes: checks the login token and sets req.user
 routes/           one router per area; each route lists its owner and issue number
 public/           files served at /static, e.g. public/images/logo.svg -> /static/images/logo.svg
-test/             mocha + chai tests (*.test.js); setup.js resets the data before every test
+utils/
+  auth.js         password hashing, login tokens (JWT), toPublicUser(), findUserByEmail()
+  validation.js   isBlank(), isValidEmail(), isValidPassword()
+test/             mocha + chai tests (*.test.js); setup.js resets the data before every test,
+                  helpers.js has authHeader() for calling private routes
 ```
 
 ## Who builds which routes
@@ -32,7 +36,12 @@ Every route already exists in `routes/` and responds `501 isn't built yet`. Find
 | `routes/statistics.js` | statistics | Ryan (#77) |
 | `routes/export.js` | CSV and PDF export | Bertin (#78) |
 
-Until login is built (#13, #19), `requireAuth` treats every request as the demo user, so `req.user` already works in your routes.
+Private routes need a login token: the front-end sends it automatically after you log in, and `requireAuth` responds 401 without it. Inside your route, `req.user` is the logged-in user. To try a private route with `curl` or Postman, log in first and send the token you get back:
+
+```bash
+curl -X POST http://localhost:3000/api/auth/login -H "Content-Type: application/json" -d '{"email":"alex.morgan@university.example","password":"password123"}'
+curl http://localhost:3000/api/applications/app-1 -H "Authorization: Bearer <token from the first response>"
+```
 
 ## Building a route, step by step
 
@@ -55,10 +64,10 @@ router.get('/:id', (req, res) => {
 - Respond with `res.json(...)`. Use `res.status(201).json(...)` when you create something.
 - For bad input or a missing item, `throw httpError(status, message)`. The front-end shows the message to the user. Use 400 for invalid input, 404 for not found, and 409 for a conflict such as a duplicate.
 
-**2. Try it.** With the server running (`npm run dev`), open http://localhost:3000/api/applications/app-1 in your browser, or for POST/PATCH use Postman or `curl`:
+**2. Try it.** With the server running (`npm run dev`), use Postman or `curl` with a login token (see "Who builds which routes" above for how to get one):
 
 ```bash
-curl -X POST http://localhost:3000/api/applications -H "Content-Type: application/json" -d '{"company":"Acme","position":"Intern"}'
+curl -X POST http://localhost:3000/api/applications -H "Authorization: Bearer <token>" -H "Content-Type: application/json" -d '{"company":"Acme","position":"Intern"}'
 ```
 
 **3. Connect the front-end.** Add the matching function to `front-end/src/api/httpApi.js`, with the same name as in `mockApi.js`:
@@ -75,18 +84,19 @@ The app now uses your route instead of the mock. Open the screen and check that 
 import { expect, use } from 'chai'
 import chaiHttp, { request } from 'chai-http'
 import app from '../app.js'
+import { authHeader } from './helpers.js'
 
 use(chaiHttp)
 
 describe('GET /api/applications/:id', () => {
   it('returns the application', async () => {
-    const res = await request.execute(app).get('/api/applications/app-1')
+    const res = await request.execute(app).get('/api/applications/app-1').set(authHeader())
     expect(res).to.have.status(200)
     expect(res.body.company).to.equal('Stripe')
   })
 
   it('responds 404 for an unknown id', async () => {
-    const res = await request.execute(app).get('/api/applications/nope')
+    const res = await request.execute(app).get('/api/applications/nope').set(authHeader())
     expect(res).to.have.status(404)
   })
 })
