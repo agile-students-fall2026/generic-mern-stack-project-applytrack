@@ -18,6 +18,8 @@ export const db = {
   users: [],
   applications: [],
   events: [],
+  passwordResets: [], // { token, userId, expiresAt } for open "forgot password" links
+  loggedOutTokens: [], // login tokens that were logged out and can't be used again
 }
 
 /** Put the starting data back. Runs once on startup; tests call it before each test for a clean slate. */
@@ -25,6 +27,8 @@ export function resetStore() {
   db.users = readJson('users.json')
   db.applications = readJson('applications.json')
   db.events = readJson('events.json')
+  db.passwordResets = []
+  db.loggedOutTokens = []
 }
 
 /** A new unique id with a readable prefix, e.g. newId('app') -> "app-3f9c2a1b". */

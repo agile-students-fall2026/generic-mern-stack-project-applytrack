@@ -3,6 +3,7 @@
     "id": "user-1",
     "fullName": "Alex Morgan",
     "email": "alex.morgan@university.example",
+    "passwordHash": "$2b$10$33lm9BDgLwl4ugTy12pk/uHnkG63aiAHnj4K5nv/E46ztMAl4UvJG",
     "avatarUrl": "https://picsum.photos/seed/applytrack-user/200/200",
     "notificationSettings": {
       "deadlineReminders": true,
