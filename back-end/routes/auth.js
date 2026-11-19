@@ -5,7 +5,8 @@
 import { Router } from 'express'
 import { db, newId } from '../data/store.js'
 import { httpError, notImplemented } from '../middleware/errors.js'
-import { createToken, findUserByEmail, hashPassword, normalizeEmail, passwordMatches, toPublicUser } from '../utils/auth.js'
+import { getTokenFromRequest } from '../middleware/requireAuth.js'
+import { createToken, findUserByEmail, hashPassword, normalizeEmail, passwordMatches, readToken, toPublicUser } from '../utils/auth.js'
 import { isBlank, isValidEmail, isValidPassword, MIN_PASSWORD_LENGTH } from '../utils/validation.js'
 
 const router = Router()
@@ -67,9 +68,14 @@ router.post('/login', async (req, res) => {
 
 /**
  * POST /api/auth/logout  (#14, front-end: logOut)
- * 200 -> { ok: true }
+ * Send the login token in the Authorization header, like a private route.
+ * 200 -> { ok: true }. That token stops working, even if someone copied it.
  */
-router.post('/logout', notImplemented)
+router.post('/logout', (req, res) => {
+  const token = getTokenFromRequest(req)
+  if (readToken(token)) db.loggedOutTokens.push(token)
+  res.json({ ok: true })
+})
 
 /**
  * POST /api/auth/forgot-password  (#61, front-end: requestPasswordReset)

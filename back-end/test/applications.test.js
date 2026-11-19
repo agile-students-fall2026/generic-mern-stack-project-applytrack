@@ -6,12 +6,13 @@ import { expect, use } from 'chai'
 import chaiHttp, { request } from 'chai-http'
 import app from '../app.js'
 import { db, todayString } from '../data/store.js'
+import { authHeader } from './helpers.js'
 
 use(chaiHttp)
 
 describe('POST /api/applications', () => {
   it('creates the application and responds 201 with it', async () => {
-    const res = await request.execute(app).post('/api/applications').send({ company: 'Acme', position: 'Intern' })
+    const res = await request.execute(app).post('/api/applications').set(authHeader()).send({ company: 'Acme', position: 'Intern' })
     expect(res).to.have.status(201)
     expect(res.body.id).to.match(/^app-/)
     expect(res.body.company).to.equal('Acme')
@@ -20,13 +21,13 @@ describe('POST /api/applications', () => {
 
   it('saves the new application first in the list', async () => {
     const count = db.applications.length
-    const res = await request.execute(app).post('/api/applications').send({ company: 'Acme', position: 'Intern' })
+    const res = await request.execute(app).post('/api/applications').set(authHeader()).send({ company: 'Acme', position: 'Intern' })
     expect(db.applications).to.have.length(count + 1)
     expect(db.applications[0].id).to.equal(res.body.id)
   })
 
   it('fills in defaults for the fields that were left out', async () => {
-    const res = await request.execute(app).post('/api/applications').send({ company: 'Acme', position: 'Intern' })
+    const res = await request.execute(app).post('/api/applications').set(authHeader()).send({ company: 'Acme', position: 'Intern' })
     expect(res.body.status).to.equal('applied')
     expect(res.body.jobType).to.equal('internship')
     expect(res.body.dateApplied).to.equal(todayString())
@@ -42,27 +43,28 @@ describe('POST /api/applications', () => {
     const res = await request
       .execute(app)
       .post('/api/applications')
+      .set(authHeader())
       .send({ company: 'Acme', position: 'Intern', recruiters, resume })
     expect(res.body.recruiters).to.deep.equal(recruiters)
     expect(res.body.resume).to.deep.equal(resume)
   })
 
   it('removes extra spaces around the company and position', async () => {
-    const res = await request.execute(app).post('/api/applications').send({ company: '  Acme ', position: ' Intern  ' })
+    const res = await request.execute(app).post('/api/applications').set(authHeader()).send({ company: '  Acme ', position: ' Intern  ' })
     expect(res.body.company).to.equal('Acme')
     expect(res.body.position).to.equal('Intern')
   })
 
   it('responds 400 when the company is missing', async () => {
     const count = db.applications.length
-    const res = await request.execute(app).post('/api/applications').send({ position: 'Intern' })
+    const res = await request.execute(app).post('/api/applications').set(authHeader()).send({ position: 'Intern' })
     expect(res).to.have.status(400)
     expect(res.body.error).to.equal('Company is required')
     expect(db.applications).to.have.length(count) // nothing was saved
   })
 
   it('responds 400 when the position is only spaces', async () => {
-    const res = await request.execute(app).post('/api/applications').send({ company: 'Acme', position: '   ' })
+    const res = await request.execute(app).post('/api/applications').set(authHeader()).send({ company: 'Acme', position: '   ' })
     expect(res).to.have.status(400)
     expect(res.body.error).to.equal('Position is required')
   })
