@@ -47,7 +47,8 @@ export function findUserByEmail(email) {
  * The browser sends it back with every request (see middleware/requireAuth.js).
  */
 export function createToken(user) {
-  return jwt.sign({ userId: user.id }, getTokenSecret(), { expiresIn: TOKEN_LIFETIME })
+  // jwtid makes every token different, so logging out one session can't end another.
+  return jwt.sign({ userId: user.id }, getTokenSecret(), { expiresIn: TOKEN_LIFETIME, jwtid: crypto.randomUUID() })
 }
 
 /** The user id inside a token, or null if the token is fake, changed, expired or logged out. */

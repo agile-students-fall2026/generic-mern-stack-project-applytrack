@@ -93,3 +93,36 @@ describe('POST /api/auth/login', () => {
     expect(res).to.have.status(400)
   })
 })
+
+describe('POST /api/auth/logout', () => {
+  async function logIn() {
+    const res = await request.execute(app).post('/api/auth/login').send(DEMO)
+    return { Authorization: `Bearer ${res.body.token}` }
+  }
+
+  it('ends the session: the token no longer opens private routes (#14)', async () => {
+    const header = await logIn()
+    const before = await request.execute(app).get('/api/users/me').set(header)
+    expect(before).to.not.have.status(401)
+
+    const res = await request.execute(app).post('/api/auth/logout').set(header)
+    expect(res).to.have.status(200)
+    expect(res.body).to.deep.equal({ ok: true })
+
+    const after = await request.execute(app).get('/api/users/me').set(header)
+    expect(after).to.have.status(401)
+  })
+
+  it('only ends that one session', async () => {
+    const first = await logIn()
+    const second = await logIn()
+    await request.execute(app).post('/api/auth/logout').set(first)
+    const res = await request.execute(app).post('/api/applications').set(second).send({ company: 'Acme', position: 'Intern' })
+    expect(res).to.have.status(201)
+  })
+
+  it('still responds ok without a token', async () => {
+    const res = await request.execute(app).post('/api/auth/logout')
+    expect(res).to.have.status(200)
+  })
+})
