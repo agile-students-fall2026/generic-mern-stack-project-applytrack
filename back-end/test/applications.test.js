@@ -144,3 +144,49 @@ describe('GET /api/applications/duplicate', () => {
     expect(noPosition.body.error).to.equal('Position is required')
   })
 })
+
+describe('PATCH /api/applications/:id', () => {
+  // The Edit form sends the changed fields, and the response is the updated application
+  it('updates the fields that were sent and responds with the application', async () => {
+    const res = await request
+      .execute(app)
+      .patch('/api/applications/app-1')
+      .set(authHeader())
+      .send({ location: 'Remote', notes: 'Updated notes' })
+    expect(res).to.have.status(200)
+    expect(res.body.location).to.equal('Remote')
+    expect(res.body.notes).to.equal('Updated notes')
+    expect(db.applications.find((item) => item.id === 'app-1').location).to.equal('Remote') // really saved
+  })
+
+  // Fields that weren't sent stay the same
+  it('keeps the fields that were not sent', async () => {
+    const res = await request.execute(app).patch('/api/applications/app-1').set(authHeader()).send({ notes: 'Hi' })
+    expect(res.body.company).to.equal('Stripe')
+    expect(res.body.position).to.equal('Software Engineering Intern')
+  })
+
+  // Changing the status adds it to the status history, so the timeline shows when it changed
+  it('adds a new status to the status history', async () => {
+    const before = db.applications.find((item) => item.id === 'app-1').statusHistory.length
+    const res = await request.execute(app).patch('/api/applications/app-1').set(authHeader()).send({ status: 'offer' })
+    expect(res.body.status).to.equal('offer')
+    expect(res.body.statusHistory).to.have.length(before + 1)
+    expect(res.body.statusHistory.at(-1)).to.deep.equal({ status: 'offer', date: todayString() })
+  })
+
+  // Saving the form without changing the status shouldn't add a duplicate history entry
+  it('does not add to the status history when the status is the same', async () => {
+    const application = db.applications.find((item) => item.id === 'app-1')
+    const before = application.statusHistory.length
+    await request.execute(app).patch('/api/applications/app-1').set(authHeader()).send({ status: application.status })
+    expect(application.statusHistory).to.have.length(before)
+  })
+
+  // Editing an application that doesn't exist gives a clear 404
+  it('responds 404 when the application does not exist', async () => {
+    const res = await request.execute(app).patch('/api/applications/app-xyz').set(authHeader()).send({ notes: 'Hi' })
+    expect(res).to.have.status(404)
+    expect(res.body.error).to.equal('Application not found')
+  })
+})
