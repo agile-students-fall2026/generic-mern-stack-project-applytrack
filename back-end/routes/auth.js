@@ -2,14 +2,17 @@
  * /api/auth: sign up, log in, log out and password reset. Public: no login needed.
  * Owner: Kumneger (#6, #11, #58)
  */
+import { randomBytes } from 'node:crypto'
 import { Router } from 'express'
 import { db, newId } from '../data/store.js'
-import { httpError, notImplemented } from '../middleware/errors.js'
+import { httpError } from '../middleware/errors.js'
 import { getTokenFromRequest } from '../middleware/requireAuth.js'
 import { createToken, findUserByEmail, hashPassword, normalizeEmail, passwordMatches, readToken, toPublicUser } from '../utils/auth.js'
 import { isBlank, isValidEmail, isValidPassword, MIN_PASSWORD_LENGTH } from '../utils/validation.js'
 
 const router = Router()
+
+const RESET_LINK_LIFETIME_MS = 60 * 60 * 1000 // reset links work for 1 hour
 
 const DEFAULT_NOTIFICATION_SETTINGS = {
   deadlineReminders: true,
@@ -80,15 +83,46 @@ router.post('/logout', (req, res) => {
 /**
  * POST /api/auth/forgot-password  (#61, front-end: requestPasswordReset)
  * Body: { email }
+ * Creates a one-time reset link that works for RESET_LINK_LIFETIME_MS.
+ * No email service yet, so the link is printed in the server's terminal. Outside production the
+ * response also includes it as `resetUrl`, so the "Open reset link (demo)" button can use it.
  * 200 -> { ok: true } whether or not the email has an account (don't reveal which emails exist).
  */
-router.post('/forgot-password', notImplemented)
+router.post('/forgot-password', (req, res) => {
+  const { email } = req.body ?? {}
+  if (!isValidEmail(email)) throw httpError(400, 'Enter a valid email address')
+
+  const user = findUserByEmail(email)
+  if (!user) return res.json({ ok: true })
+
+  // A new link replaces any older one for the same account.
+  const token = randomBytes(32).toString('hex')
+  db.passwordResets = db.passwordResets.filter((reset) => reset.userId !== user.id)
+  db.passwordResets.push({ token, userId: user.id, expiresAt: Date.now() + RESET_LINK_LIFETIME_MS })
+
+  const resetUrl = `${process.env.FRONT_END_URL || 'http://localhost:5173'}/reset-password?token=${token}`
+  if (process.env.NODE_ENV !== 'test') console.log(`Password reset link for ${user.email}: ${resetUrl}`)
+
+  res.json(process.env.NODE_ENV === 'production' ? { ok: true } : { ok: true, resetUrl })
+})
 
 /**
  * POST /api/auth/reset-password  (#61, front-end: resetPassword)
- * Body: { token, newPassword }
- * 200 -> { ok: true }. 400 the reset link is invalid or expired.
+ * Body: { token, newPassword }  (token comes from the reset link)
+ * 200 -> { ok: true }. 400 the reset link is invalid or expired, or the password is too short.
  */
-router.post('/reset-password', notImplemented)
+router.post('/reset-password', async (req, res) => {
+  const { token, newPassword } = req.body ?? {}
+  const reset = db.passwordResets.find((item) => item.token === token && item.expiresAt > Date.now())
+  const user = reset && db.users.find((item) => item.id === reset.userId)
+  if (!user) {
+    throw httpError(400, 'This reset link is invalid or has expired. Request a new one from the Forgot Password page.')
+  }
+  if (!isValidPassword(newPassword)) throw httpError(400, `Use at least ${MIN_PASSWORD_LENGTH} characters for your password`)
+
+  user.passwordHash = await hashPassword(newPassword)
+  db.passwordResets = db.passwordResets.filter((item) => item !== reset) // each link works only once
+  res.json({ ok: true })
+})
 
 export default router
