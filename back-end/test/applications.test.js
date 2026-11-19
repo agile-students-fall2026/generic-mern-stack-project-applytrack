@@ -189,4 +189,23 @@ describe('PATCH /api/applications/:id', () => {
     expect(res).to.have.status(404)
     expect(res.body.error).to.equal('Application not found')
   })
+
+  // Company and position are required, so they can't be changed to empty, and nothing is saved
+  it('responds 400 when the company is changed to empty', async () => {
+    const res = await request.execute(app).patch('/api/applications/app-1').set(authHeader()).send({ company: '  ' })
+    expect(res).to.have.status(400)
+    expect(res.body.error).to.equal('Company is required')
+    expect(db.applications.find((item) => item.id === 'app-1').company).to.equal('Stripe')
+  })
+
+  // The id and status history are managed by the server, so the request can't overwrite them
+  it('does not let the request change the id or the status history', async () => {
+    const res = await request
+      .execute(app)
+      .patch('/api/applications/app-1')
+      .set(authHeader())
+      .send({ id: 'hacked', statusHistory: [] })
+    expect(res.body.id).to.equal('app-1')
+    expect(res.body.statusHistory).to.not.be.empty
+  })
 })
