@@ -61,3 +61,30 @@ describe('GET /api/applications/:id', () => {
     expect(res.body.error).to.equal('Application not found')
   })
 })})
+
+describe('POST /api/applications/:id/archive and /unarchive (#18)', () => {
+  it('archives an application so it moves to the archived list', async () => {
+    const application = db.applications.find((item) => !item.archived)
+    const res = await request.execute(app).post(`/api/applications/${application.id}/archive`)
+    expect(res).to.have.status(200)
+    expect(res.body.archived).to.equal(true)
+
+    const list = await request.execute(app).get('/api/applications')
+    expect(list.body.map((item) => item.id)).to.not.include(application.id)
+  })
+
+  it('unarchives an application so it is back in the current list', async () => {
+    const application = db.applications.find((item) => item.archived)
+    const res = await request.execute(app).post(`/api/applications/${application.id}/unarchive`)
+    expect(res).to.have.status(200)
+    expect(res.body.archived).to.equal(false)
+
+    const list = await request.execute(app).get('/api/applications')
+    expect(list.body.map((item) => item.id)).to.include(application.id)
+  })
+
+  it('responds 404 when archiving an application that does not exist', async () => {
+    const res = await request.execute(app).post('/api/applications/app-does-not-exist/archive')
+    expect(res).to.have.status(404)
+  })
+})

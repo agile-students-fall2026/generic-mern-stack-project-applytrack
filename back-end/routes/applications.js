@@ -108,8 +108,16 @@ router.delete('/:id', notImplemented)
  * POST /api/applications/:id/archive and /unarchive  (Estifanos #18, front-end: archiveApplication, unarchiveApplication)
  * 200 -> the updated application. 404 not found.
  */
-router.post('/:id/archive', notImplemented)
-router.post('/:id/unarchive', notImplemented)
+// Set archived to true or false on one application, then send it back
+function setArchived(req, res, archived) {
+  const application = db.applications.find((item) => item.id === req.params.id)
+  if (!application) throw httpError(404, 'Application not found')
+  application.archived = archived
+  res.json(application)
+}
+
+router.post('/:id/archive', (req, res) => setArchived(req, res, true))
+router.post('/:id/unarchive', (req, res) => setArchived(req, res, false))
 
 /**
  * PUT /api/applications/:id/offer  (Estifanos #16, front-end: saveOffer)
