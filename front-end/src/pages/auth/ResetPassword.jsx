@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../../api'
 import { Button, FormSection, Icon, Page, SuccessDialog, TextField } from '../../components'
 import {
@@ -16,6 +16,8 @@ import './auth.css'
  */
 export default function ResetPassword() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const token = searchParams.get('token') ?? '' // from the reset link: /reset-password?token=...
   const [form, setForm] = useState({ newPassword: '', confirmPassword: '' })
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -42,7 +44,7 @@ export default function ResetPassword() {
 
     setLoading(true)
     try {
-      await api.resetPassword({ newPassword: form.newPassword })
+      await api.resetPassword({ token, newPassword: form.newPassword })
       setUpdated(true)
     } catch (err) {
       setFormError(err.message)

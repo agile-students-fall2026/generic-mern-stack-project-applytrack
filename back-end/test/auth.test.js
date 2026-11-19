@@ -126,3 +126,69 @@ describe('POST /api/auth/logout', () => {
     expect(res).to.have.status(200)
   })
 })
+
+describe('password reset (#61)', () => {
+  async function requestReset(email = DEMO.email) {
+    const res = await request.execute(app).post('/api/auth/forgot-password').send({ email })
+    return { res, token: res.body.resetUrl && new URL(res.body.resetUrl).searchParams.get('token') }
+  }
+
+  it('creates a reset link for an existing account', async () => {
+    const { res, token } = await requestReset()
+    expect(res).to.have.status(200)
+    expect(res.body.resetUrl).to.include('/reset-password?token=')
+    expect(token).to.have.length(64)
+  })
+
+  it('responds the same way for an email without an account, without a link', async () => {
+    const { res } = await requestReset('nobody@example.com')
+    expect(res).to.have.status(200)
+    expect(res.body).to.deep.equal({ ok: true })
+  })
+
+  it('rejects an invalid email', async () => {
+    const { res } = await requestReset('not-an-email')
+    expect(res).to.have.status(400)
+  })
+
+  it('sets the new password with the link, and the user can log in with it', async () => {
+    const { token } = await requestReset()
+    const res = await request.execute(app).post('/api/auth/reset-password').send({ token, newPassword: 'fresh-password' })
+    expect(res).to.have.status(200)
+
+    const login = await request.execute(app).post('/api/auth/login').send({ email: DEMO.email, password: 'fresh-password' })
+    expect(login).to.have.status(200)
+  })
+
+  it('each link works only once', async () => {
+    const { token } = await requestReset()
+    await request.execute(app).post('/api/auth/reset-password').send({ token, newPassword: 'fresh-password' })
+    const again = await request.execute(app).post('/api/auth/reset-password').send({ token, newPassword: 'another-password' })
+    expect(again).to.have.status(400)
+  })
+
+  it('a newer link replaces the older one', async () => {
+    const { token: oldToken } = await requestReset()
+    await requestReset()
+    const res = await request.execute(app).post('/api/auth/reset-password').send({ token: oldToken, newPassword: 'fresh-password' })
+    expect(res).to.have.status(400)
+  })
+
+  it('rejects an expired link', async () => {
+    const { token } = await requestReset()
+    db.passwordResets[0].expiresAt = Date.now() - 1
+    const res = await request.execute(app).post('/api/auth/reset-password').send({ token, newPassword: 'fresh-password' })
+    expect(res).to.have.status(400)
+    expect(res.body.error).to.include('invalid or has expired')
+  })
+
+  it('rejects a made-up link and a short new password', async () => {
+    const fake = await request.execute(app).post('/api/auth/reset-password').send({ token: 'made-up', newPassword: 'fresh-password' })
+    expect(fake).to.have.status(400)
+
+    const { token } = await requestReset()
+    const short = await request.execute(app).post('/api/auth/reset-password').send({ token, newPassword: 'short' })
+    expect(short).to.have.status(400)
+    expect(short.body.error).to.include('8 characters')
+  })
+})

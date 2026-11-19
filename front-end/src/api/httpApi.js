@@ -12,15 +12,40 @@
  * In development, Vite forwards /api requests to the back-end (see vite.config.js).
  */
 
+/* ===================== Login token ===================== */
+
+// Logging in or signing up gives us a token from the server. We keep it on this device and send it
+// with every request, so the server knows who is asking (see back-end/middleware/requireAuth.js).
+const TOKEN_KEY = 'applytrack-token'
+
+function getToken() {
+  try {
+    return localStorage.getItem(TOKEN_KEY)
+  } catch {
+    return null
+  }
+}
+
+function saveToken(token) {
+  try {
+    if (token) localStorage.setItem(TOKEN_KEY, token)
+    else localStorage.removeItem(TOKEN_KEY)
+  } catch {
+    // storage can be unavailable (e.g. private browsing); you stay logged in until the page closes
+  }
+}
+
 /**
  * Send a request to the back-end and return the JSON it responds with.
  * If the server responds with an error, this throws an Error with the server's message,
  * so pages can show it the same way they show mock errors.
  */
 async function request(method, path, body) {
-  const options = { method }
+  const options = { method, headers: {} }
+  const token = getToken()
+  if (token) options.headers.Authorization = `Bearer ${token}`
   if (body !== undefined) {
-    options.headers = { 'Content-Type': 'application/json' }
+    options.headers['Content-Type'] = 'application/json'
     options.body = JSON.stringify(body)
   }
 
@@ -34,6 +59,8 @@ async function request(method, path, body) {
 
   const data = await response.json().catch(() => null)
   if (!response.ok) {
+    // Our token was refused (expired, or the account is gone): forget it so the next visit asks to log in.
+    if (response.status === 401 && token) saveToken(null)
     if (data?.error) throw new Error(data.error)
     // Our server always explains its errors, so an empty 5xx means it couldn't be reached (e.g. it isn't running).
     if (response.status >= 500) throw unreachable
@@ -42,7 +69,57 @@ async function request(method, path, body) {
   return data
 }
 
+/* ===================== Auth and account (Kumneger: #6, #11, #36, #58) ===================== */
+
+/** True if someone is logged in on this device (synchronous, used when the app starts). */
+function hasSession() {
+  return Boolean(getToken())
+}
+
+async function logIn({ email, password } = {}) {
+  const { user, token } = await request('POST', '/auth/login', { email, password })
+  saveToken(token)
+  return user
+}
+
+async function signUp({ fullName, email, password } = {}) {
+  const { user, token } = await request('POST', '/auth/signup', { fullName, email, password })
+  saveToken(token)
+  return user
+}
+
+async function logOut() {
+  try {
+    await request('POST', '/auth/logout')
+  } finally {
+    saveToken(null) // log out on this device even if the server couldn't be reached
+  }
+  return { ok: true }
+}
+
+async function deleteAccount() {
+  await request('DELETE', '/users/me')
+  saveToken(null)
+  return { ok: true }
+}
+
 export const httpApi = {
   // is the server running? (a working example; no page uses it)
   checkHealth: () => request('GET', '/health'),
+
+  // auth
+  hasSession,
+  logIn,
+  signUp,
+  logOut,
+  // returns { ok, resetUrl }; resetUrl is only there in development (no email is sent yet)
+  requestPasswordReset: ({ email } = {}) => request('POST', '/auth/forgot-password', { email }),
+  resetPassword: ({ token, newPassword } = {}) => request('POST', '/auth/reset-password', { token, newPassword }),
+
+  // account
+  getCurrentUser: () => request('GET', '/users/me'),
+  updateCurrentUser: (changes) => request('PATCH', '/users/me', changes),
+  changePassword: ({ currentPassword, newPassword }) =>
+    request('PATCH', '/users/me/password', { currentPassword, newPassword }),
+  deleteAccount,
 }
