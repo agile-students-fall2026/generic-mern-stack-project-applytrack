@@ -20,7 +20,18 @@ function isBlank(value) {
  * Query: ?status=interview to filter by status; ?archived=true for only archived ones (default: only active)
  * 200 -> array of applications
  */
-router.get('/', notImplemented)
+router.get('/', (req, res) => {
+  // ?archived=true returns only archived applications, otherwise only current ones
+  const archived = req.query.archived === 'true'
+  let applications = db.applications.filter((application) => Boolean(application.archived) === archived)
+
+  // ?status=interview keeps only applications with that status
+  if (req.query.status) {
+    applications = applications.filter((application) => application.status === req.query.status)
+  }
+
+  res.json(applications)
+})
 
 /**
  * GET /api/applications/duplicate?company=Stripe&position=Intern  (Bertin #17, front-end: findDuplicateApplication)
@@ -33,7 +44,12 @@ router.get('/duplicate', notImplemented)
  * GET /api/applications/:id  (Estifanos #39 and #67, front-end: getApplication)
  * 200 -> the application. 404 not found.
  */
-router.get('/:id', notImplemented)
+router.get('/:id', (req, res) => {
+  // Find the application with the id from the URL, e.g. /api/applications/app-1
+  const application = db.applications.find((item) => item.id === req.params.id)
+  if (!application) throw httpError(404, 'Application not found')
+  res.json(application)
+})
 
 /**
  * POST /api/applications  (owner: Bertin #1, #49 recruiters, #54 resume, front-end: createApplication)
@@ -92,8 +108,16 @@ router.delete('/:id', notImplemented)
  * POST /api/applications/:id/archive and /unarchive  (Estifanos #18, front-end: archiveApplication, unarchiveApplication)
  * 200 -> the updated application. 404 not found.
  */
-router.post('/:id/archive', notImplemented)
-router.post('/:id/unarchive', notImplemented)
+// Set archived to true or false on one application, then send it back
+function setArchived(req, res, archived) {
+  const application = db.applications.find((item) => item.id === req.params.id)
+  if (!application) throw httpError(404, 'Application not found')
+  application.archived = archived
+  res.json(application)
+}
+
+router.post('/:id/archive', (req, res) => setArchived(req, res, true))
+router.post('/:id/unarchive', (req, res) => setArchived(req, res, false))
 
 /**
  * PUT /api/applications/:id/offer  (Estifanos #16, front-end: saveOffer)
