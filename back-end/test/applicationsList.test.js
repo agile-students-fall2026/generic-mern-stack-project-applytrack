@@ -44,4 +44,20 @@ describe('GET /api/applications', () => {
     expect(res).to.have.status(200)
     expect(res.body).to.deep.equal([])
   })
-})
+
+describe('GET /api/applications/:id', () => {
+  it('responds 200 with the application, including its job posting link (#39, #67)', async () => {
+    const application = db.applications[0]
+    const res = await request.execute(app).get(`/api/applications/${application.id}`)
+    expect(res).to.have.status(200)
+    expect(res.body.id).to.equal(application.id)
+    expect(res.body.company).to.equal(application.company)
+    expect(res.body).to.have.property('jobPostingUrl')
+  })
+
+  it('responds 404 when the application does not exist', async () => {
+    const res = await request.execute(app).get('/api/applications/app-does-not-exist')
+    expect(res).to.have.status(404)
+    expect(res.body.error).to.equal('Application not found')
+  })
+})})

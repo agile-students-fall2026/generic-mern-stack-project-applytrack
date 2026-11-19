@@ -44,7 +44,12 @@ router.get('/duplicate', notImplemented)
  * GET /api/applications/:id  (Estifanos #39 and #67, front-end: getApplication)
  * 200 -> the application. 404 not found.
  */
-router.get('/:id', notImplemented)
+router.get('/:id', (req, res) => {
+  // Find the application with the id from the URL, e.g. /api/applications/app-1
+  const application = db.applications.find((item) => item.id === req.params.id)
+  if (!application) throw httpError(404, 'Application not found')
+  res.json(application)
+})
 
 /**
  * POST /api/applications  (owner: Bertin #1, #49 recruiters, #54 resume, front-end: createApplication)
