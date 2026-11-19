@@ -127,6 +127,10 @@ router.patch('/:id', (req, res) => {
   const application = db.applications.find((item) => item.id === req.params.id)
   if (!application) throw httpError(404, 'Application not found')
   const changes = req.body ?? {}
+  
+  // Company and position can be left out, but they can't be changed to empty
+  if (changes.company !== undefined && isBlank(changes.company)) throw httpError(400, 'Company is required')
+  if (changes.position !== undefined && isBlank(changes.position)) throw httpError(400, 'Position is required')
 
   // A new status is also added to the status history, with today's date
   if (changes.status && changes.status !== application.status) {
