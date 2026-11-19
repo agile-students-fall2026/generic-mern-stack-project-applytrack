@@ -83,6 +83,7 @@ describe('GET /api/applications/duplicate', () => {
     const res = await request
       .execute(app)
       .get('/api/applications/duplicate')
+      .set(authHeader())
       .query({ company: 'Stripe', position: 'Software Engineering Intern' })
     expect(res).to.have.status(200)
     expect(res.body.id).to.equal('app-1')
@@ -93,16 +94,22 @@ describe('GET /api/applications/duplicate', () => {
     const res = await request
       .execute(app)
       .get('/api/applications/duplicate')
+      .set(authHeader())
       .query({ company: '  stripe ', position: 'software  engineering   INTERN' })
     expect(res.body.id).to.equal('app-1')
   })
 
   // The check also looks at applications added since the server started, not only the starting data
   it('finds an application that was just created', async () => {
-    await request.execute(app).post('/api/applications').send({ company: 'Acme', position: 'Intern' })
+    await request
+      .execute(app)
+      .post('/api/applications')
+      .set(authHeader())
+      .send({ company: 'Acme', position: 'Intern' })
     const res = await request
       .execute(app)
       .get('/api/applications/duplicate')
+      .set(authHeader())
       .query({ company: 'acme', position: 'intern' })
     expect(res.body.company).to.equal('Acme')
   })
@@ -112,6 +119,7 @@ describe('GET /api/applications/duplicate', () => {
     const res = await request
       .execute(app)
       .get('/api/applications/duplicate')
+      .set(authHeader())
       .query({ company: 'Stripe', position: 'Product Manager' })
     expect(res).to.have.status(200)
     expect(res.body).to.equal(null)
@@ -119,11 +127,19 @@ describe('GET /api/applications/duplicate', () => {
 
   // The check needs both fields, so a request without one is rejected
   it('responds 400 when the company or position is missing', async () => {
-    const noCompany = await request.execute(app).get('/api/applications/duplicate').query({ position: 'Intern' })
+    const noCompany = await request
+      .execute(app)
+      .get('/api/applications/duplicate')
+      .set(authHeader())
+      .query({ position: 'Intern' })
     expect(noCompany).to.have.status(400)
     expect(noCompany.body.error).to.equal('Company is required')
 
-    const noPosition = await request.execute(app).get('/api/applications/duplicate').query({ company: 'Stripe' })
+    const noPosition = await request
+      .execute(app)
+      .get('/api/applications/duplicate')
+      .set(authHeader())
+      .query({ company: 'Stripe' })
     expect(noPosition).to.have.status(400)
     expect(noPosition.body.error).to.equal('Position is required')
   })
