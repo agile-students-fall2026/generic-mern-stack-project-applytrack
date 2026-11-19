@@ -124,7 +124,21 @@ router.post('/:id/unarchive', (req, res) => setArchived(req, res, false))
  * Body: any of { baseSalary, signingBonus, startDate, location, respondBy, remindBefore, decision }
  * 200 -> the updated application. 404 not found.
  */
-router.put('/:id/offer', notImplemented)
+router.put('/:id/offer', (req, res) => {
+  const application = db.applications.find((item) => item.id === req.params.id)
+  if (!application) throw httpError(404, 'Application not found')
+
+  // Keep only the offer fields we expect, so nothing else gets saved by accident
+  const OFFER_FIELDS = ['baseSalary', 'signingBonus', 'startDate', 'location', 'respondBy', 'remindBefore', 'decision', 'notes']
+  const changes = {}
+  for (const field of OFFER_FIELDS) {
+    if (field in (req.body ?? {})) changes[field] = req.body[field]
+  }
+
+  // Merge into the existing offer (or start a new one), like saveOffer in the front-end mockApi.js
+  application.offer = { ...application.offer, ...changes }
+  res.json(application)
+})
 
 /**
  * POST /api/applications/:id/rounds  (Ryan #15, front-end: addInterviewRound)
