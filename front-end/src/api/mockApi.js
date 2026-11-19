@@ -264,20 +264,20 @@ async function deleteAccount() {
   return { ok: true }
 }
 
+// Saved on their own (not on the mock account), because logging in now happens on the back-end.
+// Remove these two once GET/PATCH /api/users/me/notification-settings (#75) are in httpApi.js.
+const NOTIFICATION_SETTINGS_KEY = 'applytrack-mock-notification-settings'
+
 async function getNotificationSettings() {
   await wait()
-  const accounts = await getAccounts()
-  const account = await getLoggedInAccount(accounts)
-  return copy({ ...DEFAULT_NOTIFICATION_SETTINGS, ...account.notificationSettings })
+  return { ...DEFAULT_NOTIFICATION_SETTINGS, ...readStorage(NOTIFICATION_SETTINGS_KEY, {}) }
 }
 
 async function updateNotificationSettings(changes) {
   await wait()
-  const accounts = await getAccounts()
-  const account = await getLoggedInAccount(accounts)
-  account.notificationSettings = { ...DEFAULT_NOTIFICATION_SETTINGS, ...account.notificationSettings, ...changes }
-  saveAccounts(accounts)
-  return copy(account.notificationSettings)
+  const settings = { ...(await getNotificationSettings()), ...changes }
+  writeStorage(NOTIFICATION_SETTINGS_KEY, settings)
+  return settings
 }
 
 /* ===================== Applications ===================== */

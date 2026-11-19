@@ -9,7 +9,8 @@ import './auth.css'
  * Forgot Password screen: request a password reset link.
  * Issue: #58 · Wireframe: ux-design/prototype/forgot-password.png · Pop-up: reset-link-sent.png
  *
- * No email is really sent yet, so the success pop-up also offers a demo link to the Reset Password screen.
+ * No email is really sent yet. In development the server sends the reset link back, so the success
+ * pop-up offers it as a demo button (the link is also printed in the back-end's terminal).
  */
 export default function ForgotPassword() {
   const navigate = useNavigate()
@@ -18,6 +19,7 @@ export default function ForgotPassword() {
   const [loading, setLoading] = useState(false)
   const [formError, setFormError] = useState('')
   const [sent, setSent] = useState(false)
+  const [demoResetPath, setDemoResetPath] = useState('')
 
   const emailError = validateEmail(email)
 
@@ -28,7 +30,12 @@ export default function ForgotPassword() {
 
     setLoading(true)
     try {
-      await api.requestPasswordReset({ email })
+      const { resetUrl } = await api.requestPasswordReset({ email })
+      // Keep only the path, e.g. /reset-password?token=..., so it opens in this app whatever its address.
+      if (resetUrl) {
+        const url = new URL(resetUrl)
+        setDemoResetPath(url.pathname + url.search)
+      }
       setSent(true)
     } catch (err) {
       setFormError(err.message)
@@ -81,8 +88,8 @@ export default function ForgotPassword() {
         message={`If an account exists for ${email.trim()}, we've sent a link to reset your password.`}
         doneLabel="Back to log in"
         onDone={() => navigate('/login', { replace: true })}
-        secondaryLabel="Open reset link (demo)"
-        onSecondary={() => navigate('/reset-password', { replace: true })}
+        secondaryLabel={demoResetPath ? 'Open reset link (demo)' : undefined}
+        onSecondary={() => navigate(demoResetPath, { replace: true })}
       />
     </Page>
   )
