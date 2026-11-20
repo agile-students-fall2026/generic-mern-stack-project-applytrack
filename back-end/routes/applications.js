@@ -159,6 +159,8 @@ router.delete('/:id', (req, res) => {
 
   // Keep every application except the one being deleted
   db.applications = db.applications.filter((item) => item.id !== req.params.id)
+  // Also delete its events, so the calendar doesn't show events for an application that's gone
+  db.events = db.events.filter((event) => event.applicationId !== req.params.id)
   res.json({ ok: true })
 })
 
