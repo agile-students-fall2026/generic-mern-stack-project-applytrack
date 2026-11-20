@@ -103,6 +103,38 @@ async function deleteAccount() {
   return { ok: true }
 }
 
+/* ===================== Export (Bertin: #78) ===================== */
+
+/**
+ * Downloads the export file from the server.
+ * Returns { fileName, mimeType, content, count }, the same as the mock version, so Export Data doesn't change.
+ * It can't use request() above, because the server answers with a file, not JSON.
+ */
+async function exportApplications({ format = 'csv', includeArchived = false } = {}) {
+  const query = new URLSearchParams({ format, includeArchived })
+  let response
+  try {
+    response = await fetch(`/api/export?${query}`, { headers: { Authorization: `Bearer ${getToken()}` } })
+  } catch {
+    throw new Error("Couldn't reach the server. Check that the back-end is running.")
+  }
+
+  if (!response.ok) {
+    if (response.status === 401) saveToken(null) // same as request(): a refused token is forgotten
+    const data = await response.json().catch(() => null)
+    throw new Error(data?.error ?? `Export failed (${response.status})`)
+  }
+
+  // The server names the file in a header like: attachment; filename=applytrack-applications-2026-11-20.csv
+  const disposition = response.headers.get('Content-Disposition') ?? ''
+  const fileName = disposition.split('filename=')[1]?.replaceAll('"', '') || `applytrack-applications.${format}`
+  return {
+    fileName,
+    mimeType: response.headers.get('Content-Type'),
+    content: await response.blob(),
+    count: Number(response.headers.get('X-Export-Count')),
+  }
+}
 export const httpApi = {
   // is the server running? (a working example; no page uses it)
   checkHealth: () => request('GET', '/health'),
@@ -122,4 +154,6 @@ export const httpApi = {
   changePassword: ({ currentPassword, newPassword }) =>
     request('PATCH', '/users/me/password', { currentPassword, newPassword }),
   deleteAccount,
+  // export
+  exportApplications,
 }
