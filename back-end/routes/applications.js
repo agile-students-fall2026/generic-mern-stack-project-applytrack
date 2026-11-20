@@ -153,7 +153,14 @@ router.patch('/:id', (req, res) => {
  * Also deletes the application's events.
  * 200 -> { ok: true }. 404 not found.
  */
-router.delete('/:id', notImplemented)
+router.delete('/:id', (req, res) => {
+  const application = db.applications.find((item) => item.id === req.params.id)
+  if (!application) throw httpError(404, 'Application not found')
+
+  // Keep every application except the one being deleted
+  db.applications = db.applications.filter((item) => item.id !== req.params.id)
+  res.json({ ok: true })
+})
 
 /**
  * POST /api/applications/:id/archive and /unarchive  (Estifanos #18, front-end: archiveApplication, unarchiveApplication)
