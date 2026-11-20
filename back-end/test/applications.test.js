@@ -234,4 +234,21 @@ describe('DELETE /api/applications/:id', () => {
     expect(res.body.error).to.equal('Application not found')
     expect(db.applications).to.have.length(count)
   })
+
+  // The application's events are deleted with it (app-1 has event-2 in the starting data)
+  it('also deletes the events of that application', async () => {
+    expect(db.events.some((event) => event.applicationId === 'app-1')).to.equal(true)
+    await request.execute(app).delete('/api/applications/app-1').set(authHeader())
+    expect(db.events.some((event) => event.applicationId === 'app-1')).to.equal(false)
+  })
+
+  // Only the chosen application and its events are deleted; everything else stays
+  it('keeps the other applications and their events', async () => {
+    const applicationCount = db.applications.length
+    const otherEvents = db.events.filter((event) => event.applicationId !== 'app-1').length
+    await request.execute(app).delete('/api/applications/app-1').set(authHeader())
+    expect(db.applications).to.have.length(applicationCount - 1)
+    expect(db.applications.find((item) => item.id === 'app-2')).to.not.equal(undefined)
+    expect(db.events).to.have.length(otherEvents)
+  })
 })
