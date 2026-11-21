@@ -44,9 +44,10 @@ router.get('/', (req, res) => {
   const archived = req.query.archived === 'true'
   let applications = db.applications.filter((application) => Boolean(application.archived) === archived)
 
-  // ?status=interview keeps only applications with that status
+  // ?status=interview keeps one status; ?status=applied,interview keeps several 
   if (req.query.status) {
-    applications = applications.filter((application) => application.status === req.query.status)
+    const statuses = [].concat(req.query.status).join(',').split(',').map((status) => status.trim())
+    applications = applications.filter((application) => statuses.includes(application.status))
   }
 
   res.json(applications)

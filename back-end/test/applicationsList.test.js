@@ -101,3 +101,27 @@ describe('archiving keeps the application data (#18)', () => {
     expect(res.body).to.deep.equal(before)
   })
 })
+
+describe('filtering by more than one status (#63)', () => {
+  it('returns applications with any of the statuses, separated by commas', async () => {
+    const res = await request.execute(app).get('/api/applications?status=applied,interview').set(authHeader())
+    expect(res).to.have.status(200)
+    expect(res.body).to.not.be.empty
+    expect(res.body.every((item) => ['applied', 'interview'].includes(item.status))).to.equal(true)
+
+    const statuses = new Set(res.body.map((item) => item.status))
+    expect(statuses.has('applied')).to.equal(true)
+    expect(statuses.has('interview')).to.equal(true)
+  })
+
+  it('also accepts the status repeated: ?status=applied&status=interview', async () => {
+    const res = await request.execute(app).get('/api/applications?status=applied&status=interview').set(authHeader())
+    expect(res).to.have.status(200)
+    expect(res.body.every((item) => ['applied', 'interview'].includes(item.status))).to.equal(true)
+  })
+
+  it('ignores spaces after the commas', async () => {
+    const res = await request.execute(app).get('/api/applications?status=applied,%20interview').set(authHeader())
+    expect(res.body.some((item) => item.status === 'interview')).to.equal(true)
+  })
+})
