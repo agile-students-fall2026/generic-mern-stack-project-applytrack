@@ -89,3 +89,15 @@ describe('POST /api/applications/:id/archive and /unarchive (#18)', () => {
     expect(res).to.have.status(404)
   })
 })
+
+describe('archiving keeps the application data (#18)', () => {
+  it('only changes archived, leaving every other field the same', async () => {
+    const application = db.applications.find((item) => !item.archived)
+    const before = JSON.parse(JSON.stringify(application))
+
+    await request.execute(app).post(`/api/applications/${application.id}/archive`).set(authHeader())
+    const res = await request.execute(app).post(`/api/applications/${application.id}/unarchive`).set(authHeader())
+
+    expect(res.body).to.deep.equal(before)
+  })
+})
