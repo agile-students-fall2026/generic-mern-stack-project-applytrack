@@ -1,7 +1,7 @@
 /*
- * A tiny PDF writer for plain-text reports (used by Export Data).
+ * A tiny PDF writer for plain-text reports (used by Export Data, #78).
  * It lays out lines of text on US Letter pages using the built-in Helvetica font,
- * so no PDF library is needed.
+ * so no PDF library is needed. Moved here from the front-end's utils/pdf.js.
  */
 
 const PAGE_WIDTH = 612 // points (8.5in)
@@ -26,7 +26,7 @@ function toPdfText(text) {
 
 /**
  * @param lines  array of { text, bold?, size? } (or plain strings)
- * @returns a Blob containing the PDF
+ * @returns a Buffer containing the PDF file, ready to send with res.send()
  */
 export function createTextPdf(lines) {
   const items = lines.map((line) => (typeof line === 'string' ? { text: line } : line))
@@ -70,5 +70,6 @@ export function createTextPdf(lines) {
   for (let id = 1; id < objects.length; id += 1) output += `${String(offsets[id]).padStart(10, '0')} 00000 n \n`
   output += `trailer\n<< /Size ${objects.length} /Root 1 0 R >>\nstartxref\n${xrefStart}\n%%EOF\n`
 
-  return new Blob([output], { type: 'application/pdf' })
+  // 'latin1' turns each character into one byte, which is what the PDF format expects
+  return Buffer.from(output, 'latin1')
 }

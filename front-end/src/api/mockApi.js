@@ -13,9 +13,8 @@
  * pages that use `api.*` won't need to change.
  */
 
-import { FINAL_STATUSES, getLabel, getStatus, JOB_TYPES } from '../constants'
-import { formatDate, todayString } from '../utils/format'
-import { createTextPdf } from '../utils/pdf'
+import { FINAL_STATUSES } from '../constants'
+import { todayString } from '../utils/format'
 
 const FAKE_DELAY_MS = 250 // simulate network time so loading states are visible
 
@@ -474,63 +473,6 @@ async function getStatistics() {
   }
 }
 
-/* ===================== Export ===================== */
-
-const EXPORT_COLUMNS = [
-  { header: 'Company', value: (item) => item.company },
-  { header: 'Position', value: (item) => item.position },
-  { header: 'Location', value: (item) => item.location },
-  { header: 'Job type', value: (item) => getLabel(JOB_TYPES, item.jobType) },
-  { header: 'Status', value: (item) => getStatus(item.status).label },
-  { header: 'Date applied', value: (item) => item.dateApplied },
-  { header: 'Archived', value: (item) => (item.archived ? 'Yes' : 'No') },
-  { header: 'Job posting', value: (item) => item.jobPostingUrl },
-  { header: 'Recruiter', value: (item) => item.recruiters?.[0]?.name ?? '' },
-  { header: 'Recruiter email', value: (item) => item.recruiters?.[0]?.email ?? '' },
-  { header: 'Resume used', value: (item) => item.resume?.fileName ?? '' },
-  { header: 'Notes', value: (item) => item.notes },
-]
-
-function buildCsv(applications) {
-  const escape = (value) => `"${String(value ?? '').replaceAll('"', '""')}"`
-  const rows = applications.map((item) => EXPORT_COLUMNS.map((column) => escape(column.value(item))).join(','))
-  // \uFEFF tells Excel the file is UTF-8, so accented names display correctly
-  return '\uFEFF' + [EXPORT_COLUMNS.map((column) => escape(column.header)).join(','), ...rows].join('\r\n')
-}
-
-function buildPdf(applications) {
-  const lines = [
-    { text: 'ApplyTrack - Applications', bold: true, size: 16 },
-    { text: `Exported ${formatDate(todayString())} - ${applications.length} applications` },
-    { text: '' },
-  ]
-  for (const item of applications) {
-    lines.push({ text: `${item.company} - ${item.position}`, bold: true, size: 11 })
-    lines.push({
-      text: `${getStatus(item.status).label} - applied ${formatDate(item.dateApplied)}${item.archived ? ' - archived' : ''}`,
-    })
-    const details = [item.location, getLabel(JOB_TYPES, item.jobType)].filter(Boolean).join(' - ')
-    if (details) lines.push({ text: details })
-    if (item.jobPostingUrl) lines.push({ text: item.jobPostingUrl })
-    if (item.notes) lines.push({ text: `Notes: ${item.notes}` })
-    lines.push({ text: '' })
-  }
-  return createTextPdf(lines)
-}
-
-/**
- * Builds the export file.
- * Returns { fileName, mimeType, content, count }; pass it to downloadFile() from utils/files.js.
- */
-async function exportApplications({ format = 'csv', includeArchived = false } = {}) {
-  const applications = await getApplications({ includeArchived })
-  const fileName = `applytrack-applications-${todayString()}.${format}`
-  if (format === 'pdf') {
-    return { fileName, mimeType: 'application/pdf', content: buildPdf(applications), count: applications.length }
-  }
-  return { fileName, mimeType: 'text/csv', content: buildCsv(applications), count: applications.length }
-}
-
 export const mockApi = {
   // auth
   hasSession,
@@ -566,7 +508,6 @@ export const mockApi = {
   createEvent,
   updateEvent,
   deleteEvent,
-  // statistics and export
+  // statistics
   getStatistics,
-  exportApplications,
 }
