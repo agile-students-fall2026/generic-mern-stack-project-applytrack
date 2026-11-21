@@ -24,6 +24,11 @@ const upload = multer({
     filename: (req, file, done) => done(null, `${newId('resume')}.pdf`),
   }),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+  // Only keep PDF files; anything else is refused before it's saved
+  fileFilter: (req, file, done) => {
+    if (file.originalname.toLowerCase().endsWith('.pdf')) done(null, true)
+    else done(httpError(400, 'Resume must be a PDF file'))
+  },
 })
 
 /**
