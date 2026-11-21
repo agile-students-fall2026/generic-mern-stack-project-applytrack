@@ -281,22 +281,6 @@ async function updateNotificationSettings(changes) {
 
 /* ===================== Applications ===================== */
 
-/** All applications. Archived ones are left out unless { includeArchived: true } is passed. */
-async function getApplications({ includeArchived = false } = {}) {
-  const data = await getStore()
-  return copy(data.applications.filter((item) => includeArchived || !item.archived))
-}
-
-async function getArchivedApplications() {
-  const data = await getStore()
-  return copy(data.applications.filter((item) => item.archived))
-}
-
-async function getApplication(id) {
-  const data = await getStore()
-  return copy(findApplication(data, id))
-}
-
 async function createApplication(fields) {
   const data = await getStore()
   const status = fields.status ?? 'applied'
@@ -340,14 +324,6 @@ async function deleteApplication(id) {
   return { ok: true }
 }
 
-async function archiveApplication(id) {
-  return updateApplication(id, { archived: true })
-}
-
-async function unarchiveApplication(id) {
-  return updateApplication(id, { archived: false })
-}
-
 /** Returns an existing application with the same company and position (ignoring case and spaces), or null. */
 async function findDuplicateApplication({ company, position }) {
   const data = await getStore()
@@ -355,15 +331,6 @@ async function findDuplicateApplication({ company, position }) {
     (item) => normalize(item.company) === normalize(company) && normalize(item.position) === normalize(position),
   )
   return match ? copy(match) : null
-}
-
-/* ===================== Offer details ===================== */
-
-async function saveOffer(applicationId, offer) {
-  const data = await getStore()
-  const application = findApplication(data, applicationId)
-  application.offer = { ...application.offer, ...offer }
-  return copy(application)
 }
 
 /* ===================== Interview rounds ===================== */
@@ -489,16 +456,10 @@ export const mockApi = {
   getNotificationSettings,
   updateNotificationSettings,
   // applications
-  getApplications,
-  getArchivedApplications,
-  getApplication,
   createApplication,
   updateApplication,
   deleteApplication,
-  archiveApplication,
-  unarchiveApplication,
   findDuplicateApplication,
-  saveOffer,
   addInterviewRound,
   updateInterviewRound,
   deleteInterviewRound,
