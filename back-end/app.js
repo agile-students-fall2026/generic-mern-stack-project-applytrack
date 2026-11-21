@@ -13,6 +13,7 @@ import authRouter from './routes/auth.js'
 import eventsRouter from './routes/events.js'
 import exportRouter from './routes/export.js'
 import healthRouter from './routes/health.js'
+import resumesRouter from './routes/resumes.js'
 import statisticsRouter from './routes/statistics.js'
 import usersRouter from './routes/users.js'
 
@@ -40,6 +41,7 @@ app.use('/api/applications', requireAuth, applicationsRouter)
 app.use('/api/events', requireAuth, eventsRouter)
 app.use('/api/statistics', requireAuth, statisticsRouter)
 app.use('/api/export', requireAuth, exportRouter)
+app.use('/api/resumes', requireAuth, resumesRouter)
 
 // Anything that didn't match a route above, and any error thrown inside a route.
 app.use(notFound)
