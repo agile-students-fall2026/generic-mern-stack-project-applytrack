@@ -5,15 +5,14 @@ import './FileUpload.css'
 /**
  * Pick a file (e.g. the resume used for an application).
  * Shows a dashed "Upload" box when empty, and the file name with a "Change" button once chosen.
- * Files aren't actually uploaded yet; you get the file name to save with the mock api.
- *
+ * This component only picks the file; the page uploads it (e.g. api.uploadResume(file) in ApplicationForm). *
  * @param fileName  the currently selected file's name (or empty)
  * @param onChange  called with the chosen File object (use file.name)
  * @param accept    allowed file types, default PDF only
  *
  * @example
  * <FileUpload label="Upload resume (PDF)" fileName={resume?.fileName}
- *   onChange={(file) => setResume({ fileName: file.name, uploadedAt: todayString() })} />
+ *   onChange={async (file) => setResume(await api.uploadResume(file))} />
  */
 export function FileUpload({ label = 'Upload file', fileName, onChange, accept = 'application/pdf' }) {
   const inputRef = useRef(null)
