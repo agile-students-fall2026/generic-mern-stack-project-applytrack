@@ -135,6 +135,16 @@ async function exportApplications({ format = 'csv', includeArchived = false } = 
     count: Number(response.headers.get('X-Export-Count')),
   }
 }
+
+/* ===================== Applications: list, details, archive, offer (Estifanos: #63, #39, #67, #18, #16) ===================== */
+
+/** Current applications; with includeArchived, the archived ones too (same as the mock version). */
+async function getApplications({ includeArchived = false } = {}) {
+  const current = await request('GET', '/applications')
+  if (!includeArchived) return current
+  const archived = await request('GET', '/applications?archived=true')
+  return [...current, ...archived]
+}
 export const httpApi = {
   // is the server running? (a working example; no page uses it)
   checkHealth: () => request('GET', '/health'),
@@ -156,4 +166,12 @@ export const httpApi = {
   deleteAccount,
   // export
   exportApplications,
+
+  // applications: list, details, archive, offer
+  getApplications,
+  getArchivedApplications: () => request('GET', '/applications?archived=true'),
+  getApplication: (id) => request('GET', `/applications/${id}`),
+  archiveApplication: (id) => request('POST', `/applications/${id}/archive`),
+  unarchiveApplication: (id) => request('POST', `/applications/${id}/unarchive`),
+  saveOffer: (id, offer) => request('PUT', `/applications/${id}/offer`, offer),
 }
