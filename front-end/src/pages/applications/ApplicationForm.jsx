@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { api } from '../../api'
 import {
   Button,
   FileUpload,
@@ -9,7 +10,6 @@ import {
   TextField,
 } from '../../components'
 import { APPLICATION_STATUSES, JOB_TYPES } from '../../constants'
-import { todayString } from '../../utils/format'
 import { emptyRecruiter } from './applicationFormHelpers'
 import './ApplicationForm.css'
 
@@ -25,7 +25,8 @@ import './ApplicationForm.css'
  * <ApplicationForm form={form} onChange={setForm} errors={shownErrors} />
  */
 export default function ApplicationForm({ form, onChange, errors }) {
-  const [resumeError, setResumeError] = useState('') // message shown if the chosen file isn't a PDF
+  const [resumeError, setResumeError] = useState('') // message shown if the resume can't be used
+  const [uploading, setUploading] = useState(false) // true while the resume is being uploaded
 
   // Returns a function that updates one field of the form, e.g. update('company')
   function update(field) {
@@ -52,16 +53,23 @@ export default function ApplicationForm({ form, onChange, errors }) {
     onChange({ ...form, recruiters: form.recruiters.filter((recruiter, i) => i !== index) })
   }
 
-  // Called with the file the user picked. Only the file name is saved for now (Sprint 1 mock data).
-  function handleResumeChosen(file) {
+  // Called with the file the user picked: uploads it, then saves { fileName, url, uploadedAt } in the form
+  async function handleResumeChosen(file) {
     if (!file.name.toLowerCase().endsWith('.pdf')) {
       setResumeError('Choose a PDF file')
       return
     }
     setResumeError('')
-    onChange({ ...form, resume: { fileName: file.name, uploadedAt: todayString() } })
+    setUploading(true)
+    try {
+      const resume = await api.uploadResume(file)
+      onChange({ ...form, resume })
+    } catch (err) {
+      setResumeError(err.message)
+    } finally {
+      setUploading(false)
+    }
   }
-
   function removeResume() {
     setResumeError('')
     onChange({ ...form, resume: null })
@@ -160,6 +168,7 @@ export default function ApplicationForm({ form, onChange, errors }) {
 
       <FormSection title="Resume used">
         <FileUpload label="Upload resume (PDF)" fileName={form.resume?.fileName} onChange={handleResumeChosen} />
+        {uploading && <p className="text-muted text-small">Uploading…</p>}
         {resumeError && (
           <p className="field__error" role="alert">
             {resumeError}
