@@ -165,3 +165,100 @@ describe('PATCH /api/events/:id (#74)', () => {
     expect(res.body.error).to.equal('Event not found')
   })
 })
+
+describe('POST /api/events (#74)', () => {
+  /** POST /api/events as the demo user. */
+  function createEvent(fields) {
+    return request.execute(app).post('/api/events').set(authHeader()).send(fields)
+  }
+
+  // What the Add Event page sends
+  const newEvent = {
+    applicationId: 'app-1',
+    title: 'Send thank-you email',
+    type: 'follow-up',
+    date: '2026-11-25',
+    time: '09:00',
+    reminder: { enabled: true, before: '1-day' },
+    notes: 'Mention the system design question.',
+  }
+
+  it('responds 401 when not logged in', async () => {
+    const res = await request.execute(app).post('/api/events').send(newEvent)
+    expect(res).to.have.status(401)
+  })
+
+  // The basic case: the event comes back with a new id and every field that was sent
+  it('creates the event and responds 201 with it', async () => {
+    const res = await createEvent(newEvent)
+    expect(res).to.have.status(201)
+    expect(res.body.id).to.match(/^event-/)
+    expect(res.body).to.deep.include(newEvent)
+  })
+
+  // The event is really stored, so the other event routes can find it
+  it('saves the new event', async () => {
+    const count = db.events.length
+    const res = await createEvent(newEvent)
+    expect(db.events).to.have.length(count + 1)
+    const found = await request.execute(app).get(`/api/events/${res.body.id}`).set(authHeader())
+    expect(found.body).to.deep.equal(res.body)
+  })
+
+  // Two new events never get the same id
+  it('gives each new event a different id', async () => {
+    const first = await createEvent(newEvent)
+    const second = await createEvent(newEvent)
+    expect(first.body.id).to.not.equal(second.body.id)
+  })
+
+  // Only title and date are required, so every other field needs a sensible default
+  it('fills in defaults for the fields that were left out', async () => {
+    const res = await createEvent({ title: 'Apply by', date: '2026-12-01' })
+    expect(res.body).to.include({ applicationId: null, roundId: null, type: 'deadline', time: '', notes: '' })
+    expect(res.body.reminder).to.deep.equal({ enabled: false, before: '1-day' })
+  })
+
+  // InterviewRound.jsx sends roundId so the event is linked to its interview round
+  it('keeps the roundId', async () => {
+    const res = await createEvent({ applicationId: 'app-1', title: 'Round 2', type: 'interview', date: '2026-11-26', roundId: 'round-9' })
+    expect(res.body.roundId).to.equal('round-9')
+  })
+
+  // Spaces typed by accident before or after the title shouldn't be saved
+  it('removes extra spaces around the title', async () => {
+    const res = await createEvent({ ...newEvent, title: '  Send thank-you email ' })
+    expect(res.body.title).to.equal('Send thank-you email')
+  })
+
+  // The server picks the id, and fields that aren't part of an event aren't saved
+  it('ignores a sent id and fields that are not part of an event', async () => {
+    const res = await createEvent({ ...newEvent, id: 'event-1', startTime: '09:00', location: 'Room 4' })
+    expect(res.body.id).to.not.equal('event-1')
+    expect(res.body).to.not.have.any.keys('startTime', 'location')
+  })
+
+  // A missing required field is rejected with a clear message, and nothing is saved
+  it('responds 400 when the title is missing', async () => {
+    const count = db.events.length
+    const res = await createEvent({ date: '2026-11-25' })
+    expect(res).to.have.status(400)
+    expect(res.body.error).to.equal('Title is required')
+    expect(db.events).to.have.length(count) // nothing was saved
+  })
+
+  // Only spaces counts as empty, so it's rejected too
+  it('responds 400 when the title is only spaces', async () => {
+    const res = await createEvent({ title: '   ', date: '2026-11-25' })
+    expect(res).to.have.status(400)
+    expect(res.body.error).to.equal('Title is required')
+  })
+
+  it('responds 400 when the date is missing', async () => {
+    const count = db.events.length
+    const res = await createEvent({ title: 'Send thank-you email' })
+    expect(res).to.have.status(400)
+    expect(res.body.error).to.equal('Date is required')
+    expect(db.events).to.have.length(count)
+  })
+})
