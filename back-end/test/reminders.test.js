@@ -2,8 +2,13 @@
  * Tests for working out which reminders are due: utils/reminders.js.
  * Owner: Estifanos (#75, #100)
  */
-import { expect } from 'chai'
+import { expect, use } from 'chai'
+import chaiHttp, { request } from 'chai-http'
+import app from '../app.js'
+import { db } from '../data/store.js'
+import { authHeader } from './helpers.js'
 import { getDueReminders, parseBefore } from '../utils/reminders.js'
+use(chaiHttp)
 
 // An interview on Dec 1 at 10:00, reminded 1 day before (from Nov 30 at 10:00)
 const interview = {
@@ -86,5 +91,42 @@ describe('getDueReminders (#75, #100)', () => {
     const later = { ...interview, id: 'event-b', date: '2026-12-02', time: '09:00', reminder: { enabled: true, before: '2-days' } }
     const due = getDueReminders({ events: [later, interview], now: new Date('2026-11-30T12:00') })
     expect(due.map((item) => item.id)).to.deep.equal(['event-a', 'event-b'])
+  })
+})
+
+
+describe('GET /api/users/me/reminders (#75, #100)', () => {
+  // An interview 1 hour from now, reminded 1 day before, so it is due right now on any day
+  function addInterviewSoon() {
+    const soon = new Date(Date.now() + 60 * 60 * 1000)
+    const pad = (number) => String(number).padStart(2, '0')
+    db.events.push({
+      id: 'event-soon',
+      applicationId: 'app-1',
+      type: 'interview',
+      title: 'Interview in an hour',
+      date: `${soon.getFullYear()}-${pad(soon.getMonth() + 1)}-${pad(soon.getDate())}`,
+      time: `${pad(soon.getHours())}:${pad(soon.getMinutes())}`,
+      reminder: { enabled: true, before: '1-day' },
+    })
+  }
+
+  it('responds 200 with the reminders that are due now', async () => {
+    addInterviewSoon()
+    const res = await request.execute(app).get('/api/users/me/reminders').set(authHeader())
+    expect(res).to.have.status(200)
+    expect(res.body.map((item) => item.id)).to.include('event-soon')
+  })
+
+  it("follows the user's notification settings", async () => {
+    addInterviewSoon()
+    db.users[0].notificationSettings.interviewReminders = false
+    const res = await request.execute(app).get('/api/users/me/reminders').set(authHeader())
+    expect(res.body.map((item) => item.id)).to.not.include('event-soon')
+  })
+
+  it('responds 401 when not logged in', async () => {
+    const res = await request.execute(app).get('/api/users/me/reminders')
+    expect(res).to.have.status(401)
   })
 })

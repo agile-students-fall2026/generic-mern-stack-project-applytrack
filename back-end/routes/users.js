@@ -7,6 +7,7 @@ import { db } from '../data/store.js'
 import { httpError, notImplemented } from '../middleware/errors.js'
 import { findUserByEmail, hashPassword, passwordMatches, toPublicUser } from '../utils/auth.js'
 import { isBlank, isValidEmail, isValidPassword, MIN_PASSWORD_LENGTH } from '../utils/validation.js'
+import { getDueReminders } from '../utils/reminders.js'
 
 const router = Router()
 
@@ -106,6 +107,18 @@ router.patch('/me/notification-settings', (req, res) => {
   if (changes.defaultReminder !== undefined) settings.defaultReminder = changes.defaultReminder
 
   res.json(settings)
+})
+
+/**
+ * GET /api/users/me/reminders  (#75, #100)
+ * The logged-in user's reminders that are due right now, soonest first (see utils/reminders.js).
+ * Uses their notification settings, so switched-off reminder types are left out.
+ * 200 -> [{ kind, id, applicationId, title, at, remindAt }]
+ */
+router.get('/me/reminders', (req, res) => {
+  res.json(
+    getDueReminders({ events: db.events, applications: db.applications, settings: req.user.notificationSettings }),
+  )
 })
 
 export default router
