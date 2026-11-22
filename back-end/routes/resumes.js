@@ -47,4 +47,10 @@ router.post('/', upload.single('resume'), (req, res) => {
   })
 })
 
+// multer reports a file that's too big as an error; turn it into a clear message for the user
+router.use((error, req, res, next) => {
+  if (error.code === 'LIMIT_FILE_SIZE') next(httpError(400, 'Resume must be 5 MB or smaller'))
+  else next(error)
+})
+
 export default router
