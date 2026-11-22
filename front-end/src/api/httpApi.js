@@ -207,6 +207,8 @@ export const httpApi = {
 
   // applications: add, edit, delete, duplicate check (Bertin: #1, #43, #46, #17)
   createApplication: (fields) => request('POST', '/applications', fields),
+  findDuplicateApplication: ({ company, position }) =>
+    request('GET', `/applications/duplicate?${new URLSearchParams({ company, position })}`),
 
   // resume upload
   uploadResume,
