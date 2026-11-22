@@ -5,7 +5,7 @@
  * The data is db.events in data/store.js; see data/events.json for every field.
  */
 import { Router } from 'express'
-import { db } from '../data/store.js'
+import { db, newId } from '../data/store.js'
 import { httpError, notImplemented } from '../middleware/errors.js'
 import { isBlank } from '../utils/validation.js'
 
@@ -45,10 +45,32 @@ router.get('/:id', (req, res) => {
 
 /**
  * POST /api/events  (#74, front-end: createEvent)
- * Body: { applicationId, type, title, date, time, notes, reminder }
+ * Body: { applicationId, roundId, type, title, date, time, notes, reminder }
  * 201 -> the new event. 400 title or date missing.
  */
-router.post('/', notImplemented)
+router.post('/', (req, res) => {
+  const fields = req.body ?? {}
+  // Title and date are required; every other field is optional
+  if (isBlank(fields.title)) throw httpError(400, 'Title is required')
+  if (isBlank(fields.date)) throw httpError(400, 'Date is required')
+
+  // The new event, with a default for every field that was left out (same defaults as createEvent in mockApi.js)
+  const event = {
+    id: newId('event'),
+    applicationId: fields.applicationId || null,
+    roundId: fields.roundId || null, // set when InterviewRound.jsx creates the event for an interview round
+    type: fields.type || 'deadline',
+    title: fields.title.trim(),
+    date: fields.date,
+    time: fields.time || '',
+    notes: fields.notes || '',
+    reminder: fields.reminder || { enabled: false, before: '1-day' },
+  }
+
+  // GET /api/events sorts by date, so the new event can go at the end
+  db.events.push(event)
+  res.status(201).json(event)
+})
 
 /**
  * PATCH /api/events/:id  (#74, front-end: updateEvent)
