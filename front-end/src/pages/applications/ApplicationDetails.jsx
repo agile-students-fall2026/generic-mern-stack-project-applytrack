@@ -236,6 +236,7 @@ export default function ApplicationDetails() {
             <ListRow
               icon="file"
               title={application.resume.fileName}
+              href={application.resume.url}
               subtitle={application.resume.uploadedAt && `Uploaded ${formatDate(application.resume.uploadedAt)}`}
             />
           </Card>
