@@ -60,12 +60,8 @@ export default function Statistics() {
   const interviews = stats.interviews ?? 0
   const offers = stats.offers ?? 0
   const rejected = stats.rejections ?? 0
-  
-  const responseRate =
-    stats.responseRate ??
-    (totalApplications > 0 ? 
-      ((interviews + offers + rejected) / totalApplications) * 100
-    : 0)
+  // Calculated by the back-end (GET /api/statistics)
+  const responseRate = stats.responseRate ?? 0
 
   return (
     <Page title="Statistics">    

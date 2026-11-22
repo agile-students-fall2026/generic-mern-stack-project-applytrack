@@ -174,4 +174,9 @@ export const httpApi = {
   archiveApplication: (id) => request('POST', `/applications/${id}/archive`),
   unarchiveApplication: (id) => request('POST', `/applications/${id}/unarchive`),
   saveOffer: (id, offer) => request('PUT', `/applications/${id}/offer`, offer),
+
+
+  
+  /* ===================== Statistics (Ryan: #77) ===================== */
+  getStatistics: () => request('GET', '/statistics'),
 }
