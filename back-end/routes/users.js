@@ -72,13 +72,40 @@ router.delete('/me', (req, res) => {
  * GET /api/users/me/notification-settings  (#75, front-end: getNotificationSettings)
  * 200 -> { deadlineReminders, interviewReminders, followUpReminders, defaultReminder }
  */
-router.get('/me/notification-settings', notImplemented)
+router.get('/me/notification-settings', (req, res) => {
+  res.json(req.user.notificationSettings ?? {})
+})
 
 /**
  * PATCH /api/users/me/notification-settings  (#75, front-end: updateNotificationSettings)
  * Body: any of the settings above
  * 200 -> all the settings after the change
  */
-router.patch('/me/notification-settings', notImplemented)
+// The on/off switches on the Notification Settings page
+const REMINDER_SWITCHES = ['deadlineReminders', 'interviewReminders', 'followUpReminders']
+
+router.patch('/me/notification-settings', (req, res) => {
+  const changes = req.body ?? {}
+
+  // Check every field that was sent before changing anything, like PATCH /me does
+  for (const field of REMINDER_SWITCHES) {
+    if (changes[field] !== undefined && typeof changes[field] !== 'boolean') {
+      throw httpError(400, `${field} must be true or false`)
+    }
+  }
+  if (changes.defaultReminder !== undefined && isBlank(changes.defaultReminder)) {
+    throw httpError(400, 'Choose when to be reminded')
+  }
+
+  // Only the fields that were sent change; the rest are kept
+  if (!req.user.notificationSettings) req.user.notificationSettings = {}
+  const settings = req.user.notificationSettings
+  for (const field of REMINDER_SWITCHES) {
+    if (changes[field] !== undefined) settings[field] = changes[field]
+  }
+  if (changes.defaultReminder !== undefined) settings.defaultReminder = changes.defaultReminder
+
+  res.json(settings)
+})
 
 export default router
