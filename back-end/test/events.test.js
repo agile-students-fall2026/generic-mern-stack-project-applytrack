@@ -262,3 +262,80 @@ describe('POST /api/events (#74)', () => {
     expect(db.events).to.have.length(count)
   })
 })
+
+describe('DELETE /api/events/:id (#74)', () => {
+  /** DELETE /api/events/:id as the demo user. */
+  function deleteEvent(id) {
+    return request.execute(app).delete(`/api/events/${id}`).set(authHeader())
+  }
+
+  /** The ids of an application's interview rounds. */
+  function roundIds(applicationId) {
+    return db.applications.find((item) => item.id === applicationId).interviewRounds.map((round) => round.id)
+  }
+
+  it('responds 401 when not logged in', async () => {
+    const res = await request.execute(app).delete('/api/events/event-1')
+    expect(res).to.have.status(401)
+  })
+
+  // The basic case: the event is gone and the other events are kept
+  it('deletes the event and responds 200 with { ok: true }', async () => {
+    const count = db.events.length
+    const res = await deleteEvent('event-1')
+    expect(res).to.have.status(200)
+    expect(res.body).to.deep.equal({ ok: true })
+    expect(db.events).to.have.length(count - 1)
+    expect(db.events.find((event) => event.id === 'event-1')).to.equal(undefined)
+  })
+
+  // After deleting, the event can't be fetched any more
+  it('makes GET /api/events/:id respond 404 afterwards', async () => {
+    await deleteEvent('event-1')
+    const res = await request.execute(app).get('/api/events/event-1').set(authHeader())
+    expect(res).to.have.status(404)
+  })
+
+  // round-1 is app-1's technical phone screen in the starting data
+  it('also deletes the interview round linked by roundId', async () => {
+    db.events.push({ ...makeEvent('event-round', 'app-1', '2026-12-01', '10:00'), type: 'interview', roundId: 'round-1' })
+    await deleteEvent('event-round')
+    expect(roundIds('app-1')).to.deep.equal([])
+  })
+
+  // Older interview events have no roundId, so the round is matched by name and date instead
+  it('also deletes the interview round with the same name and date', async () => {
+    db.events.push({ ...makeEvent('event-round', 'app-1', '2026-10-06', '10:00'), type: 'interview', title: 'Technical phone screen' })
+    await deleteEvent('event-round')
+    expect(roundIds('app-1')).to.deep.equal([])
+  })
+
+  // An interview event that doesn't match any round leaves the rounds alone
+  it('keeps the rounds when no round matches the event', async () => {
+    db.events.push({ ...makeEvent('event-round', 'app-1', '2026-12-01', '10:00'), type: 'interview', title: 'Something else' })
+    await deleteEvent('event-round')
+    expect(roundIds('app-1')).to.deep.equal(['round-1'])
+  })
+
+  // Only interview events are linked to rounds, so a deadline with a matching name and date keeps the round
+  it("doesn't delete a round for events that aren't interviews", async () => {
+    db.events.push({ ...makeEvent('event-round', 'app-1', '2026-10-06', '10:00'), title: 'Technical phone screen', roundId: 'round-1' })
+    await deleteEvent('event-round')
+    expect(roundIds('app-1')).to.deep.equal(['round-1'])
+  })
+
+  // An event doesn't have to belong to an application (applicationId: null), and deleting it still works
+  it('works when the event has no application', async () => {
+    db.events.push({ ...makeEvent('event-alone', null, '2026-12-01', '10:00'), type: 'interview' })
+    const res = await deleteEvent('event-alone')
+    expect(res).to.have.status(200)
+  })
+
+  it('responds 404 when there is no event with that id', async () => {
+    const count = db.events.length
+    const res = await deleteEvent('event-missing')
+    expect(res).to.have.status(404)
+    expect(res.body.error).to.equal('Event not found')
+    expect(db.events).to.have.length(count) // nothing was deleted
+  })
+})
