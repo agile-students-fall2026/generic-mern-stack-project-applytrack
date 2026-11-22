@@ -210,6 +210,7 @@ export const httpApi = {
   findDuplicateApplication: ({ company, position }) =>
     request('GET', `/applications/duplicate?${new URLSearchParams({ company, position })}`),
   updateApplication: (id, changes) => request('PATCH', `/applications/${id}`, changes),
+  deleteApplication: (id) => request('DELETE', `/applications/${id}`),
 
   // resume upload
   uploadResume,
