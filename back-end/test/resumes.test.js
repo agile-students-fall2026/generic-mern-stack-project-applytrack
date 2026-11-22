@@ -59,3 +59,38 @@ describe('POST /api/resumes', () => {
     expect(res).to.have.header('content-type', 'application/pdf')
   })
 })
+
+
+describe('POST /api/resumes errors', () => {
+  // Only PDFs are accepted, like the form says
+  it('responds 400 for a file that is not a PDF', async () => {
+    const res = await request
+      .execute(app)
+      .post('/api/resumes')
+      .set(authHeader())
+      .attach('resume', Buffer.from('hello'), 'notes.txt')
+    expect(res).to.have.status(400)
+    expect(res.body.error).to.equal('Resume must be a PDF file')
+  })
+
+  // Sending the form without a file is a clear 400, not a crash
+  it('responds 400 when no file is sent', async () => {
+    const res = await request.execute(app).post('/api/resumes').set(authHeader()).field('note', 'no file')
+    expect(res).to.have.status(400)
+    expect(res.body.error).to.equal('Choose a PDF file')
+  })
+
+  // Files over 5 MB are refused (and nothing is kept on disk)
+  it('responds 400 for a file bigger than 5 MB', async () => {
+    const bigFile = Buffer.alloc(6 * 1024 * 1024)
+    const res = await request.execute(app).post('/api/resumes').set(authHeader()).attach('resume', bigFile, 'big.pdf')
+    expect(res).to.have.status(400)
+    expect(res.body.error).to.equal('Resume must be 5 MB or smaller')
+  })
+
+  // Uploading is private: without logging in, the request is refused
+  it('responds 401 when not logged in', async () => {
+    const res = await request.execute(app).post('/api/resumes').attach('resume', PDF, 'resume.pdf')
+    expect(res).to.have.status(401)
+  })
+})
