@@ -7,8 +7,11 @@
 import { Router } from 'express'
 import { db } from '../data/store.js'
 import { httpError, notImplemented } from '../middleware/errors.js'
+import { isBlank } from '../utils/validation.js'
 
 const router = Router()
+
+const EDITABLE_FIELDS = ['applicationId', 'roundId', 'type', 'title', 'date', 'time', 'notes', 'reminder']
 
 /** The event with this id, or a 404 error when there isn't one */
 function findEvent(id) {
@@ -49,9 +52,25 @@ router.post('/', notImplemented)
 
 /**
  * PATCH /api/events/:id  (#74, front-end: updateEvent)
- * 200 -> the updated event. 404 not found.
+ * Body: any of { applicationId, type, title, date, time, notes, reminder }
+ * 200 -> the updated event. 404 not found. 400 title or date changed to empty.
  */
-router.patch('/:id', notImplemented)
+router.patch('/:id', (req, res) => {
+  const event = findEvent(req.params.id)
+  const changes = req.body ?? {}
+
+  // Title and date can be left out, but they can't be changed to empty
+  if (changes.title !== undefined && isBlank(changes.title)) throw httpError(400, 'Title is required')
+  if (changes.date !== undefined && isBlank(changes.date)) throw httpError(400, 'Date is required')
+
+  // Only copy the fields the Edit form can change, so the id (or anything else) can't be changed by accident
+  for (const field of EDITABLE_FIELDS) {
+    if (changes[field] !== undefined) event[field] = changes[field]
+  }
+  event.title = event.title.trim()
+
+  res.json(event)
+})
 
 /**
  * DELETE /api/events/:id  (#74, front-end: deleteEvent)
