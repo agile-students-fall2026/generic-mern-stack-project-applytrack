@@ -174,4 +174,7 @@ export const httpApi = {
   archiveApplication: (id) => request('POST', `/applications/${id}/archive`),
   unarchiveApplication: (id) => request('POST', `/applications/${id}/unarchive`),
   saveOffer: (id, offer) => request('PUT', `/applications/${id}/offer`, offer),
+  // notification settings (#75)
+  getNotificationSettings: () => request('GET', '/users/me/notification-settings'),
+  updateNotificationSettings: (changes) => request('PATCH', '/users/me/notification-settings', changes),
 }
