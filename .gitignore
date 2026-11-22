@@ -76,6 +76,9 @@ bower_components
 # Compiled binary addons (https://nodejs.org/api/addons.html)
 build/Release
 
+# Files users upload while the back-end is running (resumes)
+back-end/public/uploads/
+
 # Dependency directories
 node_modules/
 **/node_modules/
