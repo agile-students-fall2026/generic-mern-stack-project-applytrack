@@ -209,6 +209,7 @@ export const httpApi = {
   createApplication: (fields) => request('POST', '/applications', fields),
   findDuplicateApplication: ({ company, position }) =>
     request('GET', `/applications/duplicate?${new URLSearchParams({ company, position })}`),
+  updateApplication: (id, changes) => request('PATCH', `/applications/${id}`, changes),
 
   // resume upload
   uploadResume,
