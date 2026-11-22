@@ -6,7 +6,7 @@
  */
 import { Router } from 'express'
 import { db, newId } from '../data/store.js'
-import { httpError, notImplemented } from '../middleware/errors.js'
+import { httpError } from '../middleware/errors.js'
 import { isBlank } from '../utils/validation.js'
 
 const router = Router()
@@ -18,6 +18,22 @@ function findEvent(id) {
   const event = db.events.find((item) => item.id === id)
   if (!event) throw httpError(404, 'Event not found')
   return event
+}
+
+/**
+ * The interview round an interview event belongs to, as { application, round }, or null.
+ * Matches by roundId, or by the same name and date for events made without a roundId
+ * (same as findInterviewRoundForEvent in the front-end mockApi.js).
+ */
+function findRoundForEvent(event) {
+  if (event.type !== 'interview' || !event.applicationId) return null
+  const application = db.applications.find((item) => item.id === event.applicationId)
+  if (!application) return null
+
+  const round =
+    application.interviewRounds.find((item) => event.roundId && item.id === event.roundId) ||
+    application.interviewRounds.find((item) => item.name === event.title && item.date === event.date)
+  return round ? { application, round } : null
 }
 
 /**
@@ -99,6 +115,18 @@ router.patch('/:id', (req, res) => {
  * Also removes the matching interview round, like the front-end mockApi.js does.
  * 200 -> { ok: true }. 404 not found.
  */
-router.delete('/:id', notImplemented)
+router.delete('/:id', (req, res) => {
+  const event = findEvent(req.params.id)
+
+  // An interview event belongs to an interview round on its application, so delete that round too
+  const linked = findRoundForEvent(event)
+  if (linked) {
+    linked.application.interviewRounds = linked.application.interviewRounds.filter((round) => round.id !== linked.round.id)
+  }
+
+  // Keep every event except the one being deleted
+  db.events = db.events.filter((item) => item.id !== event.id)
+  res.json({ ok: true })
+})
 
 export default router
