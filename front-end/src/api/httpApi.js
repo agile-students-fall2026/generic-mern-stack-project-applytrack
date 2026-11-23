@@ -214,4 +214,8 @@ export const httpApi = {
 
   // resume upload
   uploadResume,
+
+  // notification settings (#75)
+  getNotificationSettings: () => request('GET', '/users/me/notification-settings'),
+  updateNotificationSettings: (changes) => request('PATCH', '/users/me/notification-settings', changes),
 }
