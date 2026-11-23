@@ -14,7 +14,6 @@
  */
 
 import { FINAL_STATUSES } from '../constants'
-import { todayString } from '../utils/format'
 
 const FAKE_DELAY_MS = 250 // simulate network time so loading states are visible
 
@@ -263,60 +262,6 @@ async function deleteAccount() {
   return { ok: true }
 }
 
-/* ===================== Applications ===================== */
-
-async function createApplication(fields) {
-  const data = await getStore()
-  const status = fields.status ?? 'applied'
-  const application = {
-    location: '',
-    jobType: 'internship',
-    jobPostingUrl: '',
-    logoUrl: `https://picsum.photos/seed/${encodeURIComponent(fields.company ?? 'company')}/96/96`,
-    recruiters: [],
-    resume: null,
-    notes: '',
-    interviewRounds: [],
-    offer: null,
-    ...fields,
-    id: newId('app'),
-    status,
-    dateApplied: fields.dateApplied || todayString(),
-    archived: false,
-    statusHistory: [{ status, date: todayString() }],
-  }
-  data.applications.unshift(application)
-  return copy(application)
-}
-
-/** Update any fields. Changing `status` automatically adds an entry to `statusHistory`. */
-async function updateApplication(id, changes) {
-  const data = await getStore()
-  const application = findApplication(data, id)
-  if (changes.status && changes.status !== application.status) {
-    application.statusHistory.push({ status: changes.status, date: todayString() })
-  }
-  Object.assign(application, changes, { id })
-  return copy(application)
-}
-
-async function deleteApplication(id) {
-  const data = await getStore()
-  findApplication(data, id)
-  data.applications = data.applications.filter((item) => item.id !== id)
-  data.events = data.events.filter((event) => event.applicationId !== id)
-  return { ok: true }
-}
-
-/** Returns an existing application with the same company and position (ignoring case and spaces), or null. */
-async function findDuplicateApplication({ company, position }) {
-  const data = await getStore()
-  const match = data.applications.find(
-    (item) => normalize(item.company) === normalize(company) && normalize(item.position) === normalize(position),
-  )
-  return match ? copy(match) : null
-}
-
 /* ===================== Interview rounds ===================== */
 
 async function addInterviewRound(applicationId, round) {
@@ -437,11 +382,7 @@ export const mockApi = {
   updateCurrentUser,
   changePassword,
   deleteAccount,
-  // applications
-  createApplication,
-  updateApplication,
-  deleteApplication,
-  findDuplicateApplication,
+  // applications: interview rounds
   addInterviewRound,
   updateInterviewRound,
   deleteInterviewRound,
