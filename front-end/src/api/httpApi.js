@@ -205,6 +205,13 @@ export const httpApi = {
   unarchiveApplication: (id) => request('POST', `/applications/${id}/unarchive`),
   saveOffer: (id, offer) => request('PUT', `/applications/${id}/offer`, offer),
 
+  // applications: add, edit, delete, duplicate check (Bertin: #1, #43, #46, #17)
+  createApplication: (fields) => request('POST', '/applications', fields),
+  findDuplicateApplication: ({ company, position }) =>
+    request('GET', `/applications/duplicate?${new URLSearchParams({ company, position })}`),
+  updateApplication: (id, changes) => request('PATCH', `/applications/${id}`, changes),
+  deleteApplication: (id) => request('DELETE', `/applications/${id}`),
+
   // resume upload
   uploadResume,
 }

@@ -35,6 +35,7 @@ Every route already exists in `routes/` and responds `501 isn't built yet`. Find
 | `routes/events.js` | upcoming events | Ryan (#74, #76) |
 | `routes/statistics.js` | statistics | Ryan (#77) |
 | `routes/export.js` | CSV and PDF export | Bertin (#78) |
+| `routes/resumes.js` | resume upload | Bertin (#54) |
 
 Private routes need a login token: the front-end sends it automatically after you log in, and `requireAuth` responds 401 without it. Inside your route, `req.user` is the logged-in user. To try a private route with `curl` or Postman, log in first and send the token you get back:
 
