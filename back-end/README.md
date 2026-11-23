@@ -22,13 +22,15 @@ test/             mocha + chai tests (*.test.js); setup.js resets the data befor
 
 ## Who builds which routes
 
-Every route already exists in `routes/` and responds `501 isn't built yet`. Find yours by issue number, replace `notImplemented` with the real handler, and keep the URL and response the comment describes so the front-end works with it.
+Every route has a comment above it with its owner, issue number, body and response. Routes that aren't built yet use `notImplemented` and respond `501 isn't built yet`. To build one, replace `notImplemented` with the real handler and keep the URL and response the comment describes, so the front-end works with it.
+
+The only routes still waiting are the interview rounds in `routes/applications.js` (Ryan, #15). Everything else is built and tested.
 
 | File | Routes | Owner |
 | --- | --- | --- |
 | `routes/auth.js` | sign up, log in, log out, forgot and reset password | Kumneger (#6, #11, #58) |
 | `routes/users.js` | your account: view, edit, change password, delete | Kumneger (#36) |
-| `routes/users.js` | notification settings | Ryan (#75) |
+| `routes/users.js` | notification settings, due reminders | Estifanos (#75) |
 | `routes/applications.js` | create, duplicate check, edit, delete | Bertin (#1, #17, #43, #46, #49, #54) |
 | `routes/applications.js` | list and filter, details, archive, offer | Estifanos (#16, #18, #39, #63, #67) |
 | `routes/applications.js` | interview rounds | Ryan (#15) |
