@@ -7,7 +7,11 @@ import { Card } from '../Card/Card';
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-export function Calendar() {
+function toDateString(year, month, day) {
+    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+export function Calendar({ selectedDate, onSelectDate }) {
     const [currentDate, setCurrentDate] = useState(new Date());
 
     const year = currentDate.getFullYear();
@@ -77,6 +81,8 @@ export function Calendar() {
                             month === new Date().getMonth() &&
                             year === new Date().getFullYear()
                         }
+                        isSelected={day !== null && toDateString(year, month, day) === selectedDate}
+                        onSelect={() => onSelectDate?.(toDateString(year, month, day))}
                     />
                 ))}
 
