@@ -223,4 +223,11 @@ export const httpApi = {
   
   /* ===================== Statistics (Ryan: #77) ===================== */
   getStatistics: () => request('GET', '/statistics'),
+
+  /* ===================== Events (Ryan: #74, #76) ===================== */
+  getEvents: ({ applicationId } = {}) => request('GET', applicationId ? `/events?applicationId=${encodeURIComponent(applicationId)}` : '/events'),
+  getEvent: (id) => request('GET', `/events/${id}`),
+  createEvent: (event) => request('POST', '/events', event),
+  updateEvent: (id, changes) => request('PATCH', `/events/${id}`, changes),
+  deleteEvent: (id) => request('DELETE', `/events/${id}`),
 }

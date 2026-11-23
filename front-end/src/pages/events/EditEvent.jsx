@@ -171,7 +171,10 @@ function EditEventForm({
 
     try {
       await api.deleteEvent(event.id)
-      navigate('/upcoming')
+      // Edit is opened from the event page, so go back two steps (past the event page) to the page before it.
+      // That way neither page of the deleted event is left in the history. Not enough history: go to Upcoming.
+      if (window.history.state?.idx > 1) navigate(-2)
+      else navigate('/upcoming', { replace: true })
     } catch (err) {
       setDeleteError(
         err.message || 'Could not delete event. Please try again.'
@@ -233,7 +236,12 @@ function EditEventForm({
         open={saved}
         title="Event saved"
         message="Your event details have been updated."
-        onDone={() => navigate(`/events/${event.id}`)}
+        onDone={() => {
+          // Go back to the event page we came from (it loads the saved changes), so the Edit page isn't left
+          // in the history. Opened directly with no history: go to the event page instead.
+          if (window.history.state?.idx > 0) navigate(-1)
+          else navigate(`/events/${event.id}`, { replace: true })
+        }}
       />
 
       <ConfirmDialog

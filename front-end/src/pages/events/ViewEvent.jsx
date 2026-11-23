@@ -129,7 +129,10 @@ export default function ViewEvent() {
 
     try {
       await api.deleteEvent(id)
-      navigate('/calendar')
+      // Go back to the page before this event, so the deleted event isn't left in the history.
+      // Opened directly with no history: go to Upcoming instead.
+      if (window.history.state?.idx > 0) navigate(-1)
+      else navigate('/upcoming', { replace: true })
     } catch (err) {
       setDeleteError(
         err.message || 'Could not delete event.'
