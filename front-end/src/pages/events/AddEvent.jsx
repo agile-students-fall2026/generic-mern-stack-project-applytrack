@@ -164,7 +164,7 @@ function AddEventForm({
         title="Event saved"
         message="Your event has been added."
         onDone={() =>
-          navigate(savedEventId ? `/events/${savedEventId}` : '/upcoming')
+          navigate(savedEventId ? `/events/${savedEventId}` : '/upcoming', { replace: true })
         }
       />
     </Page>
