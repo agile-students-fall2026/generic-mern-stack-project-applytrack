@@ -1,10 +1,10 @@
 /*
  * /api/users/me: the logged-in user's account and settings. req.user is the logged-in user.
- * Owners: Kumneger (#36) for the account, Ryan (#75) for notification settings
+ * Owners: Kumneger (#36) for the account, Estifanos (#75) for notification settings
  */
 import { Router } from 'express'
 import { db } from '../data/store.js'
-import { httpError, notImplemented } from '../middleware/errors.js'
+import { httpError } from '../middleware/errors.js'
 import { findUserByEmail, hashPassword, passwordMatches, toPublicUser } from '../utils/auth.js'
 import { isBlank, isValidEmail, isValidPassword, MIN_PASSWORD_LENGTH } from '../utils/validation.js'
 import { getDueReminders } from '../utils/reminders.js'
