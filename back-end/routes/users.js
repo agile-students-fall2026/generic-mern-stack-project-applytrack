@@ -7,6 +7,7 @@ import { db } from '../data/store.js'
 import { httpError, notImplemented } from '../middleware/errors.js'
 import { findUserByEmail, hashPassword, passwordMatches, toPublicUser } from '../utils/auth.js'
 import { isBlank, isValidEmail, isValidPassword, MIN_PASSWORD_LENGTH } from '../utils/validation.js'
+import { getDueReminders } from '../utils/reminders.js'
 
 const router = Router()
 
@@ -72,13 +73,52 @@ router.delete('/me', (req, res) => {
  * GET /api/users/me/notification-settings  (#75, front-end: getNotificationSettings)
  * 200 -> { deadlineReminders, interviewReminders, followUpReminders, defaultReminder }
  */
-router.get('/me/notification-settings', notImplemented)
+router.get('/me/notification-settings', (req, res) => {
+  res.json(req.user.notificationSettings ?? {})
+})
 
 /**
  * PATCH /api/users/me/notification-settings  (#75, front-end: updateNotificationSettings)
  * Body: any of the settings above
  * 200 -> all the settings after the change
  */
-router.patch('/me/notification-settings', notImplemented)
+// The on/off switches on the Notification Settings page
+const REMINDER_SWITCHES = ['deadlineReminders', 'interviewReminders', 'followUpReminders']
+
+router.patch('/me/notification-settings', (req, res) => {
+  const changes = req.body ?? {}
+
+  // Check every field that was sent before changing anything, like PATCH /me does
+  for (const field of REMINDER_SWITCHES) {
+    if (changes[field] !== undefined && typeof changes[field] !== 'boolean') {
+      throw httpError(400, `${field} must be true or false`)
+    }
+  }
+  if (changes.defaultReminder !== undefined && isBlank(changes.defaultReminder)) {
+    throw httpError(400, 'Choose when to be reminded')
+  }
+
+  // Only the fields that were sent change; the rest are kept
+  if (!req.user.notificationSettings) req.user.notificationSettings = {}
+  const settings = req.user.notificationSettings
+  for (const field of REMINDER_SWITCHES) {
+    if (changes[field] !== undefined) settings[field] = changes[field]
+  }
+  if (changes.defaultReminder !== undefined) settings.defaultReminder = changes.defaultReminder
+
+  res.json(settings)
+})
+
+/**
+ * GET /api/users/me/reminders  (#75, #100)
+ * The logged-in user's reminders that are due right now, soonest first (see utils/reminders.js).
+ * Uses their notification settings, so switched-off reminder types are left out.
+ * 200 -> [{ kind, id, applicationId, title, at, remindAt }]
+ */
+router.get('/me/reminders', (req, res) => {
+  res.json(
+    getDueReminders({ events: db.events, applications: db.applications, settings: req.user.notificationSettings }),
+  )
+})
 
 export default router

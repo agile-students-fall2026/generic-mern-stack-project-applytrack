@@ -145,6 +145,36 @@ async function getApplications({ includeArchived = false } = {}) {
   const archived = await request('GET', '/applications?archived=true')
   return [...current, ...archived]
 }
+
+/* ===================== Resume upload (Bertin: #54) ===================== */
+
+/**
+ * Uploads the chosen resume PDF to the server.
+ * Returns { fileName, url, uploadedAt }, which the form saves as the application's resume.
+ * It can't use request() above, because it sends a file (form data), not JSON.
+ */
+async function uploadResume(file) {
+  const formData = new FormData()
+  formData.append('resume', file) // the server reads the field named "resume"
+  let response
+  try {
+    response = await fetch('/api/resumes', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${getToken()}` }, // no Content-Type: the browser sets it for form data
+      body: formData,
+    })
+  } catch {
+    throw new Error("Couldn't reach the server. Check that the back-end is running.")
+  }
+
+  const data = await response.json().catch(() => null)
+  if (!response.ok) {
+    if (response.status === 401) saveToken(null) // same as request(): a refused token is forgotten
+    throw new Error(data?.error ?? `Upload failed (${response.status})`)
+  }
+  return data
+}
+
 export const httpApi = {
   // is the server running? (a working example; no page uses it)
   checkHealth: () => request('GET', '/health'),
@@ -174,6 +204,20 @@ export const httpApi = {
   archiveApplication: (id) => request('POST', `/applications/${id}/archive`),
   unarchiveApplication: (id) => request('POST', `/applications/${id}/unarchive`),
   saveOffer: (id, offer) => request('PUT', `/applications/${id}/offer`, offer),
+
+  // applications: add, edit, delete, duplicate check (Bertin: #1, #43, #46, #17)
+  createApplication: (fields) => request('POST', '/applications', fields),
+  findDuplicateApplication: ({ company, position }) =>
+    request('GET', `/applications/duplicate?${new URLSearchParams({ company, position })}`),
+  updateApplication: (id, changes) => request('PATCH', `/applications/${id}`, changes),
+  deleteApplication: (id) => request('DELETE', `/applications/${id}`),
+
+  // resume upload
+  uploadResume,
+
+  // notification settings (#75)
+  getNotificationSettings: () => request('GET', '/users/me/notification-settings'),
+  updateNotificationSettings: (changes) => request('PATCH', '/users/me/notification-settings', changes),
 
 
   
