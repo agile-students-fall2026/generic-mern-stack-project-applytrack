@@ -1,4 +1,5 @@
 
+import { useState } from 'react'
 import { api } from '../../api'
 import {
   IconButton,
@@ -13,7 +14,7 @@ import {
   ErrorState,
 } from '../../components'
 import { useApi } from '../../hooks/useApi'
-import { todayString } from '../../utils/format'
+import { parseDate, todayString } from '../../utils/format'
 
 /**
  * Upcoming screen.
@@ -33,6 +34,11 @@ async function loadUpcoming() {
 
 export default function Upcoming() {
   const { data, loading, error, reload } = useApi(loadUpcoming, [])
+  const [selectedDate, setSelectedDate] = useState('')
+
+  function handleSelectDate(date) {
+    setSelectedDate((current) => (current === date ? '' : date))
+  }
 
   if (loading && !data) {
     return (
@@ -78,6 +84,11 @@ export default function Upcoming() {
     )
     .sort((a, b) => a.date.localeCompare(b.date))
 
+  const selectedEvents = selectedDate ? events.filter((event) => event.date === selectedDate) : []
+  const selectedTitle = selectedDate
+    ? parseDate(selectedDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+    : ''
+
   return (
     <Page
       title="Upcoming"
@@ -90,7 +101,25 @@ export default function Upcoming() {
         />
       }
     >
-      <Calendar />
+      <Calendar selectedDate={selectedDate} onSelectDate={handleSelectDate} />
+
+      {selectedDate && (
+        <section className="home__section">
+          <SectionHeader title={selectedTitle} actionLabel="Close" onAction={() => setSelectedDate('')} />
+
+          {selectedEvents.length > 0 ? (
+            <Card padding="none">
+              {selectedEvents.map((event) => (
+                <EventCard key={event.id} event={event} application={applicationsById[event.applicationId]} />
+              ))}
+            </Card>
+          ) : (
+            <Card>
+              <EmptyState icon="calendar" title="No events this day" />
+            </Card>
+          )}
+        </section>
+      )}
 
       <section className="home__section">
         <SectionHeader title="This week" />
