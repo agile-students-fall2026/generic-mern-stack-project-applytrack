@@ -101,6 +101,8 @@ Open http://localhost:5173. The front-end forwards API requests to the back-end 
 
 To look around, log in with the demo account **alex.morgan@university.example** / **password123**, or create your own account on the Sign Up screen.
 
+There's no database yet (it comes in Sprint 3). The back-end keeps its data in memory, starting from the mock JSON files in `back-end/data/`, so accounts and applications you add are reset when the back-end restarts. Passwords are still stored only as bcrypt hashes.
+
 ### Back-end commands
 
 Run inside `back-end/`:
